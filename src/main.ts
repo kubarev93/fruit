@@ -38,7 +38,14 @@ async function main(): Promise<void> {
   logo.anchor.set(0.5, 0);
   world.addChild(logo);
 
-  const board = createBoard(app.ticker, app.renderer, assets.symbols, assets.frame, assets.winFrame);
+  const board = createBoard(
+    app.ticker,
+    app.renderer,
+    assets.symbols,
+    assets.frame,
+    assets.winFrame,
+    assets.bonusFrame,
+  );
   world.addChild(board.view);
 
   // Big/Mega/Epic win splash (coins + tier text + multiplier count-up).

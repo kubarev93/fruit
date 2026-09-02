@@ -11,6 +11,8 @@ export interface GameAssets {
   bgMobile: Texture;
   /** Animated gold "burning frame" placed on winning cells (29 frames). */
   winFrame: Texture[];
+  /** Animated golden glow frame (19 frames) — highlights Wild symbols. */
+  bonusFrame: Texture[];
   /** Coin-burst animation frames. */
   coins: Texture[];
   /** Tier splash art. */
@@ -64,7 +66,7 @@ export async function loadGameAssets(): Promise<GameAssets> {
   );
   const symbols = Object.fromEntries(symbolEntries) as Record<SymbolId, Texture>;
 
-  const [frame, logo, bgDesk, bgMobile, winFrame, coinsSheet, textSheet, numbersSheet] =
+  const [frame, logo, bgDesk, bgMobile, winFrame, coinsSheet, textSheet, numbersSheet, bonusSheet] =
     await Promise.all([
       tex(`${BASE}/grid.png`),
       tex(`${BASE}/logo.png`),
@@ -74,9 +76,11 @@ export async function loadGameAssets(): Promise<GameAssets> {
       loadSheet(`${BASE}/win/win-moneti.json`),
       loadSheet(`${BASE}/win/win-text.json`),
       loadSheet(`${BASE}/numbers/numbers.json`),
+      loadSheet(`${BASE}/win/bonus-frame.json`),
     ]);
 
   const coins = coinsSheet.animations['win-moneti'] as Texture[];
+  const bonusFrame = bonusSheet.animations['bonus-frame'] as Texture[];
   const winText = {
     big: textSheet.textures['bigwin/bigwin_lv1']!,
     mega: textSheet.textures['bigwin/bigwin_lv2']!,
@@ -88,5 +92,5 @@ export async function loadGameAssets(): Promise<GameAssets> {
     if (t) numbers[ch] = t;
   }
 
-  return { symbols, frame, logo, bgDesk, bgMobile, winFrame, coins, winText, numbers };
+  return { symbols, frame, logo, bgDesk, bgMobile, winFrame, bonusFrame, coins, winText, numbers };
 }

@@ -47,6 +47,7 @@ export function createBoard(
   symbolTextures: Record<SymbolId, Texture>,
   frameTexture: Texture,
   winFrameTextures: Texture[],
+  bonusFrameTextures: Texture[],
 ): Board {
   const view = new Container();
 
@@ -126,6 +127,7 @@ export function createBoard(
 
   async function spin(grid: string[][], turbo: boolean): Promise<void> {
     clearWins();
+    clearWilds();
     const p = reelSet.spin();
     // Give the reels a beat of free spin before revealing the outcome.
     if (!turbo) await wait(220);
@@ -135,6 +137,7 @@ export function createBoard(
       reelSet.setAnticipation([REELS - 1], { slowdown: { from: 0.5, to: 0.12 } });
     }
     await p;
+    highlightWilds(grid);
   }
 
   function skip(): void {
@@ -147,6 +150,7 @@ export function createBoard(
 
   // --- win presentation ---
   const winFrames: AnimatedSprite[] = [];
+  const wildFrames: AnimatedSprite[] = [];
   const line = new Graphics();
   overlay.addChild(line);
   const tweens: gsap.core.Tween[] = [];
@@ -159,6 +163,35 @@ export function createBoard(
   function cellCenter(reel: number, cell: number): { x: number; y: number } {
     const r = cellRect(reel, cell);
     return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
+  }
+
+  /** Wrap every landed Wild in the animated golden glow frame. */
+  function highlightWilds(grid: string[][]): void {
+    clearWilds();
+    for (let reel = 0; reel < grid.length; reel++) {
+      for (let cell = 0; cell < grid[reel]!.length; cell++) {
+        if (grid[reel]![cell] !== WILD) continue;
+        const c = cellCenter(reel, cell);
+        const anim = new AnimatedSprite(bonusFrameTextures);
+        anim.anchor.set(0.5);
+        anim.position.set(c.x, c.y);
+        anim.width = CELL * 1.14;
+        anim.height = CELL * 1.14;
+        anim.animationSpeed = 0.4;
+        anim.loop = true;
+        // Additive blend drops the frame's dark fill, leaving only the glow +
+        // sparkles as light over the Wild symbol.
+        anim.blendMode = 'add';
+        anim.play();
+        overlay.addChild(anim); // above symbols; light-only so it won't hide the W
+        wildFrames.push(anim);
+      }
+    }
+  }
+
+  function clearWilds(): void {
+    for (const a of wildFrames) a.destroy();
+    wildFrames.length = 0;
   }
 
   function drawLine(cells: LineWin['cells']): void {
