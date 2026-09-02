@@ -46,6 +46,7 @@ async function main(): Promise<void> {
     assets.frame,
     assets.winFrame,
     assets.bonusFrame,
+    assets.jackpots,
   );
   world.addChild(board.view);
 

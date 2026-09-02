@@ -80,6 +80,19 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    title: 'Монетки',
+    buttons: [
+      {
+        label: '3 монетки',
+        run: (a) => a.round(grid(['coin', 'spade', 'clover'], ['heart', 'coin', 'diamond'], ['grapes', 'pear', 'coin'])),
+      },
+      {
+        label: 'Монетки + вайлд',
+        run: (a) => a.round(grid(['coin', 'wild', 'clover'], ['coin', 'coin', 'diamond'], ['grapes', 'coin', 'coin'])),
+      },
+    ],
+  },
+  {
     title: 'Сплэш (без спина)',
     buttons: [
       { label: 'BIG WIN', run: (a) => a.splash('big', 12) },

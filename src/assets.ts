@@ -19,6 +19,8 @@ export interface GameAssets {
   winText: { big: Texture; mega: Texture; epic: Texture };
   /** Digit glyphs '0'..'9' and 'x' for rendering the win amount. */
   numbers: Record<string, Texture>;
+  /** Jackpot tile art shown on money symbols. */
+  jackpots: Record<'mini' | 'minor' | 'major' | 'grand', Texture>;
 }
 
 async function tex(src: string): Promise<Texture> {
@@ -66,18 +68,36 @@ export async function loadGameAssets(): Promise<GameAssets> {
   );
   const symbols = Object.fromEntries(symbolEntries) as Record<SymbolId, Texture>;
 
-  const [frame, logo, bgDesk, bgMobile, winFrame, coinsSheet, textSheet, numbersSheet, bonusSheet] =
-    await Promise.all([
-      tex(`${BASE}/grid.png`),
-      tex(`${BASE}/logo.png`),
-      tex(`${BASE}/fon-desk.jpg`),
-      tex(`${BASE}/fon-mobila.jpg`),
-      loadGridFrames(`${BASE}/win/win-frame.webp`, 4, 216, 212, 29),
-      loadSheet(`${BASE}/win/win-moneti.json`),
-      loadSheet(`${BASE}/win/win-text.json`),
-      loadSheet(`${BASE}/numbers/numbers.json`),
-      loadSheet(`${BASE}/win/bonus-frame.json`),
-    ]);
+  const [
+    frame,
+    logo,
+    bgDesk,
+    bgMobile,
+    winFrame,
+    coinsSheet,
+    textSheet,
+    numbersSheet,
+    bonusSheet,
+    mini,
+    minor,
+    major,
+    grand,
+  ] = await Promise.all([
+    tex(`${BASE}/grid.png`),
+    tex(`${BASE}/logo.png`),
+    tex(`${BASE}/fon-desk.jpg`),
+    tex(`${BASE}/fon-mobila.jpg`),
+    loadGridFrames(`${BASE}/win/win-frame.webp`, 4, 216, 212, 29),
+    loadSheet(`${BASE}/win/win-moneti.json`),
+    loadSheet(`${BASE}/win/win-text.json`),
+    loadSheet(`${BASE}/numbers/numbers.json`),
+    loadSheet(`${BASE}/win/bonus-frame.json`),
+    tex(`${BASE}/mini.png`),
+    tex(`${BASE}/minor.png`),
+    tex(`${BASE}/major.png`),
+    tex(`${BASE}/grand.png`),
+  ]);
+  const jackpots = { mini, minor, major, grand };
 
   const coins = coinsSheet.animations['win-moneti'] as Texture[];
   const bonusFrame = bonusSheet.animations['bonus-frame'] as Texture[];
@@ -92,5 +112,17 @@ export async function loadGameAssets(): Promise<GameAssets> {
     if (t) numbers[ch] = t;
   }
 
-  return { symbols, frame, logo, bgDesk, bgMobile, winFrame, bonusFrame, coins, winText, numbers };
+  return {
+    symbols,
+    frame,
+    logo,
+    bgDesk,
+    bgMobile,
+    winFrame,
+    bonusFrame,
+    coins,
+    winText,
+    numbers,
+    jackpots,
+  };
 }

@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { AnimatedSprite, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import type { Renderer, Ticker } from 'pixi.js';
 import { ReelSetBuilder, SpriteSymbol, SymbolSpotlight } from 'pixi-reels';
 import type { ReelSet, ColumnTarget, SymbolPosition } from 'pixi-reels';
@@ -7,7 +7,10 @@ import {
   BLOCK_H,
   BLOCK_W,
   CELL,
+  COIN,
+  COIN_VALUES,
   GAP,
+  JACKPOTS,
   PAYLINES,
   PAYOUTS,
   REELS,
@@ -17,6 +20,8 @@ import {
   type LineWin,
   type SymbolId,
 } from './config';
+
+type JackpotId = 'mini' | 'minor' | 'major' | 'grand';
 
 /** A pending line is worth teasing the last reel for if it could pay this much. */
 const TEASE_MIN_PAYOUT = 14;
@@ -48,6 +53,7 @@ export function createBoard(
   frameTexture: Texture,
   winFrameTextures: Texture[],
   bonusFrameTextures: Texture[],
+  jackpotTextures: Record<JackpotId, Texture>,
 ): Board {
   const view = new Container();
 
@@ -128,6 +134,7 @@ export function createBoard(
   async function spin(grid: string[][], turbo: boolean): Promise<void> {
     clearWins();
     clearWilds();
+    clearCoins();
     const p = reelSet.spin();
     // Give the reels a beat of free spin before revealing the outcome.
     if (!turbo) await wait(220);
@@ -138,6 +145,7 @@ export function createBoard(
     }
     await p;
     highlightWilds(grid);
+    highlightCoins(grid);
   }
 
   function skip(): void {
@@ -151,6 +159,7 @@ export function createBoard(
   // --- win presentation ---
   const winFrames: AnimatedSprite[] = [];
   const wildFrames: AnimatedSprite[] = [];
+  const coinFx: Container[] = [];
   const line = new Graphics();
   overlay.addChild(line);
   const tweens: gsap.core.Tween[] = [];
@@ -192,6 +201,71 @@ export function createBoard(
   function clearWilds(): void {
     for (const a of wildFrames) a.destroy();
     wildFrames.length = 0;
+  }
+
+  function pick<T>(items: readonly T[]): T {
+    return items[(Math.random() * items.length) | 0]!;
+  }
+  function pickJackpot(): JackpotId {
+    const total = JACKPOTS.reduce((sum, j) => sum + j.weight, 0);
+    let r = Math.random() * total;
+    for (const j of JACKPOTS) if ((r -= j.weight) < 0) return j.id;
+    return 'mini';
+  }
+
+  /** Give every landed money symbol its glow + a random value (cash or jackpot). */
+  function highlightCoins(grid: string[][]): void {
+    clearCoins();
+    for (let reel = 0; reel < grid.length; reel++) {
+      for (let cell = 0; cell < grid[reel]!.length; cell++) {
+        if (grid[reel]![cell] !== COIN) continue;
+        const c = cellCenter(reel, cell);
+        const group = new Container();
+        group.position.set(c.x, c.y);
+
+        // ~28% of coins carry a jackpot tier; the rest carry a cash value.
+        if (Math.random() < 0.28) {
+          const jp = new Sprite(jackpotTextures[pickJackpot()]);
+          jp.anchor.set(0.5);
+          jp.width = CELL * 0.92;
+          jp.height = CELL * 0.92;
+          group.addChild(jp);
+        } else {
+          const value = new Text({
+            text: `${pick(COIN_VALUES)}`,
+            style: {
+              fontFamily: 'Arial Black, Arial, sans-serif',
+              fontSize: CELL * 0.34,
+              fontWeight: '900',
+              fill: '#ffe14d',
+              stroke: { color: '#5a3a00', width: CELL * 0.03, join: 'round' },
+              dropShadow: { color: '#000000', alpha: 0.35, blur: 6, distance: 6, angle: Math.PI / 2 },
+            },
+          });
+          value.anchor.set(0.5);
+          group.addChild(value);
+        }
+
+        // Golden glow frame (same as Wilds), additive so its dark fill drops out.
+        const glow = new AnimatedSprite(bonusFrameTextures);
+        glow.anchor.set(0.5);
+        glow.width = CELL * 1.14;
+        glow.height = CELL * 1.14;
+        glow.animationSpeed = 0.4;
+        glow.loop = true;
+        glow.blendMode = 'add';
+        glow.play();
+        group.addChild(glow);
+
+        overlay.addChild(group);
+        coinFx.push(group);
+      }
+    }
+  }
+
+  function clearCoins(): void {
+    for (const g of coinFx) g.destroy({ children: true });
+    coinFx.length = 0;
   }
 
   function drawLine(cells: LineWin['cells']): void {

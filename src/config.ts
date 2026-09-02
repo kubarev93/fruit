@@ -14,11 +14,13 @@ export const SYMBOL_FILES: Record<string, string> = {
   clover: 'm.png',
   spade: 'n.png',
   diamond: 'o.png',
+  coin: 'z.png', // Hold & Win money symbol (a gold tile holding a value/jackpot)
 };
 
 export type SymbolId = keyof typeof SYMBOL_FILES;
 
 export const WILD: SymbolId = 'wild';
+export const COIN: SymbolId = 'coin';
 
 /** The paying symbols (everything except the wild), high value first. */
 export const PAYING: SymbolId[] = [
@@ -38,6 +40,7 @@ export const PAYING: SymbolId[] = [
  */
 export const WEIGHTS: Record<SymbolId, number> = {
   wild: 4,
+  coin: 5, // money symbol — rare
   heart: 8,
   strawberry: 10,
   grapes: 11,
@@ -48,7 +51,8 @@ export const WEIGHTS: Record<SymbolId, number> = {
   spade: 20,
 };
 
-/** Payout multiplier (× total bet) for a full 3-of-a-kind line. */
+/** Payout multiplier (× total bet) for a full 3-of-a-kind line. Coin pays 0
+ *  on lines — it's a money symbol, not a line symbol. */
 export const PAYOUTS: Record<SymbolId, number> = {
   wild: 50,
   heart: 25,
@@ -59,7 +63,23 @@ export const PAYOUTS: Record<SymbolId, number> = {
   diamond: 6,
   clover: 4,
   spade: 3,
+  coin: 0,
 };
+
+/** Jackpot tiers a money symbol can carry, weighted (mini common → grand rare). */
+export interface Jackpot {
+  id: 'mini' | 'minor' | 'major' | 'grand';
+  weight: number;
+}
+export const JACKPOTS: Jackpot[] = [
+  { id: 'mini', weight: 60 },
+  { id: 'minor', weight: 25 },
+  { id: 'major', weight: 12 },
+  { id: 'grand', weight: 3 },
+];
+
+/** Cash values (× bet) a money symbol can carry. */
+export const COIN_VALUES = [1, 2, 3, 5, 8, 10, 15, 20, 25, 50, 100];
 
 /** Grid shape. */
 export const REELS = 3;
@@ -134,12 +154,10 @@ export function evaluate(grid: string[][]): LineWin[] {
     const matches = ids.every((s) => s === anchor || s === WILD);
     if (!matches) return;
 
-    wins.push({
-      line: index,
-      symbol: anchor,
-      cells: line,
-      multiplier: PAYOUTS[anchor] ?? 0,
-    });
+    const multiplier = PAYOUTS[anchor] ?? 0;
+    if (multiplier <= 0) return; // money symbols / non-payers don't win lines
+
+    wins.push({ line: index, symbol: anchor, cells: line, multiplier });
   });
   return wins;
 }
