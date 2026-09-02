@@ -66,7 +66,8 @@ await p;                        // resolves when landed
 - [x] 3×3 reels spinning and landing on a server-style target grid
 - [x] Layout matching the reference (logo · sky · wooden frame · orchard bg · HUD)
 - [x] Line evaluation (3 rows + 2 diagonals, wild substitution)
-- [x] Win presentation: gold frames on winners + traced payline
+- [x] Win presentation: animated gold frames on winners + traced payline
+- [x] Big/Mega/Epic win splash: coin burst + tier text + multiplier count-up
+- [ ] Sound (music `main.mp3` + win SFX; needs a user-gesture to start)
 - [ ] Hold & Win bonus: money symbols, respins, GRAND/MAJOR/MINOR/MINI jackpots
-- [ ] Big/Mega/Epic win animations + sound
 - [ ] RGS wiring (real server results, wallet)
