@@ -1,0 +1,545 @@
+{
+  "frames": {
+    "winCoins/winCoins_00018": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00019": {
+      "frame": {
+        "x": 222,
+        "y": 2,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00020": {
+      "frame": {
+        "x": 442,
+        "y": 2,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00021": {
+      "frame": {
+        "x": 662,
+        "y": 2,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00022": {
+      "frame": {
+        "x": 882,
+        "y": 2,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00023": {
+      "frame": {
+        "x": 2,
+        "y": 176,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00024": {
+      "frame": {
+        "x": 222,
+        "y": 176,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00025": {
+      "frame": {
+        "x": 442,
+        "y": 176,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00026": {
+      "frame": {
+        "x": 662,
+        "y": 176,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00027": {
+      "frame": {
+        "x": 882,
+        "y": 176,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00028": {
+      "frame": {
+        "x": 2,
+        "y": 350,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00029": {
+      "frame": {
+        "x": 222,
+        "y": 350,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00030": {
+      "frame": {
+        "x": 442,
+        "y": 350,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00031": {
+      "frame": {
+        "x": 662,
+        "y": 350,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00032": {
+      "frame": {
+        "x": 882,
+        "y": 350,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00033": {
+      "frame": {
+        "x": 2,
+        "y": 524,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00034": {
+      "frame": {
+        "x": 222,
+        "y": 524,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00035": {
+      "frame": {
+        "x": 442,
+        "y": 524,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00036": {
+      "frame": {
+        "x": 662,
+        "y": 524,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00037": {
+      "frame": {
+        "x": 882,
+        "y": 524,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00038": {
+      "frame": {
+        "x": 2,
+        "y": 698,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00039": {
+      "frame": {
+        "x": 222,
+        "y": 698,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00040": {
+      "frame": {
+        "x": 442,
+        "y": 698,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00041": {
+      "frame": {
+        "x": 662,
+        "y": 698,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    },
+    "winCoins/winCoins_00042": {
+      "frame": {
+        "x": 882,
+        "y": 698,
+        "w": 218,
+        "h": 172
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 218,
+        "h": 172
+      },
+      "sourceSize": {
+        "w": 218,
+        "h": 172
+      }
+    }
+  },
+  "animations": {
+    "win-moneti": [
+      "winCoins/winCoins_00018",
+      "winCoins/winCoins_00019",
+      "winCoins/winCoins_00020",
+      "winCoins/winCoins_00021",
+      "winCoins/winCoins_00022",
+      "winCoins/winCoins_00023",
+      "winCoins/winCoins_00024",
+      "winCoins/winCoins_00025",
+      "winCoins/winCoins_00026",
+      "winCoins/winCoins_00027",
+      "winCoins/winCoins_00028",
+      "winCoins/winCoins_00029",
+      "winCoins/winCoins_00030",
+      "winCoins/winCoins_00031",
+      "winCoins/winCoins_00032",
+      "winCoins/winCoins_00033",
+      "winCoins/winCoins_00034",
+      "winCoins/winCoins_00035",
+      "winCoins/winCoins_00036",
+      "winCoins/winCoins_00037",
+      "winCoins/winCoins_00038",
+      "winCoins/winCoins_00039",
+      "winCoins/winCoins_00040",
+      "winCoins/winCoins_00041",
+      "winCoins/winCoins_00042"
+    ]
+  },
+  "meta": {
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.0",
+    "image": "win-moneti.webp",
+    "format": "RGBA8888",
+    "size": {
+      "w": 1137,
+      "h": 872
+    },
+    "scale": "1",
+    "sourceTexture": "Actionspin0.png"
+  }
+}

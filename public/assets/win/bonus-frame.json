@@ -1,0 +1,419 @@
+{
+  "frames": {
+    "buy_bonus/jpeg/bonus_buy_00.png": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_01.png": {
+      "frame": {
+        "x": 238,
+        "y": 2,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_02.png": {
+      "frame": {
+        "x": 474,
+        "y": 2,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_03.png": {
+      "frame": {
+        "x": 710,
+        "y": 2,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_04.png": {
+      "frame": {
+        "x": 946,
+        "y": 2,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_05.png": {
+      "frame": {
+        "x": 2,
+        "y": 238,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_06.png": {
+      "frame": {
+        "x": 238,
+        "y": 238,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_07.png": {
+      "frame": {
+        "x": 474,
+        "y": 238,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_08.png": {
+      "frame": {
+        "x": 710,
+        "y": 238,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_09.png": {
+      "frame": {
+        "x": 946,
+        "y": 238,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_10.png": {
+      "frame": {
+        "x": 2,
+        "y": 474,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_11.png": {
+      "frame": {
+        "x": 238,
+        "y": 474,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_12.png": {
+      "frame": {
+        "x": 474,
+        "y": 474,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_13.png": {
+      "frame": {
+        "x": 710,
+        "y": 474,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_14.png": {
+      "frame": {
+        "x": 946,
+        "y": 474,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_15.png": {
+      "frame": {
+        "x": 2,
+        "y": 710,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_16.png": {
+      "frame": {
+        "x": 238,
+        "y": 710,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_17.png": {
+      "frame": {
+        "x": 474,
+        "y": 710,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    },
+    "buy_bonus/jpeg/bonus_buy_18.png": {
+      "frame": {
+        "x": 710,
+        "y": 710,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 234,
+        "h": 234
+      }
+    }
+  },
+  "animations": {
+    "bonus-frame": [
+      "buy_bonus/jpeg/bonus_buy_00.png",
+      "buy_bonus/jpeg/bonus_buy_01.png",
+      "buy_bonus/jpeg/bonus_buy_02.png",
+      "buy_bonus/jpeg/bonus_buy_03.png",
+      "buy_bonus/jpeg/bonus_buy_04.png",
+      "buy_bonus/jpeg/bonus_buy_05.png",
+      "buy_bonus/jpeg/bonus_buy_06.png",
+      "buy_bonus/jpeg/bonus_buy_07.png",
+      "buy_bonus/jpeg/bonus_buy_08.png",
+      "buy_bonus/jpeg/bonus_buy_09.png",
+      "buy_bonus/jpeg/bonus_buy_10.png",
+      "buy_bonus/jpeg/bonus_buy_11.png",
+      "buy_bonus/jpeg/bonus_buy_12.png",
+      "buy_bonus/jpeg/bonus_buy_13.png",
+      "buy_bonus/jpeg/bonus_buy_14.png",
+      "buy_bonus/jpeg/bonus_buy_15.png",
+      "buy_bonus/jpeg/bonus_buy_16.png",
+      "buy_bonus/jpeg/bonus_buy_17.png",
+      "buy_bonus/jpeg/bonus_buy_18.png"
+    ]
+  },
+  "meta": {
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.1",
+    "image": "bonus-frame.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 1196,
+      "h": 946
+    },
+    "scale": "0.5",
+    "sourceTexture": "opaque-0.png"
+  }
+}

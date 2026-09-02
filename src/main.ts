@@ -1,0 +1,150 @@
+import { Application, Container, Sprite, Texture } from 'pixi.js';
+import { mountHud } from '@open-slot-ui/pixi';
+import { loadBuiltinArt } from '@open-slot-ui/pixi/art';
+import { resolveBetLadder } from '@open-slot-ui/core';
+import type { UISpec } from '@open-slot-ui/core';
+import { gsap } from 'gsap';
+import { loadGameAssets } from './assets';
+import { createBoard } from './reels';
+import { evaluate } from './config';
+
+const START_BALANCE = 12343.67;
+const BET_LADDER = [0.2, 0.4, 0.6, 0.8, 1, 2, 3, 5, 10, 20, 50];
+const START_BET = 1;
+
+async function main(): Promise<void> {
+  const app = new Application();
+  await app.init({
+    background: '#1a1410',
+    resizeTo: window,
+    antialias: true,
+    resolution: Math.min(window.devicePixelRatio || 1, 2),
+    autoDensity: true,
+  });
+  document.getElementById('game')!.appendChild(app.canvas);
+
+  const assets = await loadGameAssets();
+
+  // ---- scene layers (below the HUD) ----
+  const world = new Container();
+  app.stage.addChild(world);
+
+  const bg = new Sprite(assets.bgMobile);
+  bg.anchor.set(0.5);
+  world.addChild(bg);
+
+  const logo = new Sprite(assets.logo);
+  logo.anchor.set(0.5, 0);
+  world.addChild(logo);
+
+  const board = createBoard(app.ticker, app.renderer, assets.symbols, assets.frame);
+  world.addChild(board.view);
+
+  // ---- HUD (spin button, balance, bet, autoplay, menu) in one call ----
+  const { icons, spinSkin } = await loadBuiltinArt();
+  const hud = mountHud(app, buildSpec(), { icons, spinSkin, gsap, expose: true });
+  const ui = hud.ui;
+  ui.balance.set(START_BALANCE);
+  ui.bet.set(START_BET);
+
+  const snap = (x: number): number => Math.round(x * 1e8) / 1e8;
+  const turboOn = (): boolean => ui.turbo?.isOn ?? false;
+
+  // ---- one round ----
+  async function playSpin(): Promise<void> {
+    const bet = ui.bet.get();
+    ui.spin.busy();
+    board.clearWins();
+    ui.balance.set(snap(ui.balance.get() - bet));
+
+    const grid = board.randomGrid();
+    await board.spin(grid, turboOn());
+
+    const wins = evaluate(grid);
+    const win = snap(wins.reduce((sum, w) => sum + w.multiplier * bet, 0));
+    if (wins.length > 0) {
+      await board.showWins(wins);
+      ui.balance.set(snap(ui.balance.get() + win));
+    }
+    ui.reportRound(win, bet);
+  }
+
+  hud.on('spinRequested', async () => {
+    if (ui.balance.get() < ui.bet.get()) return;
+    await playSpin();
+    ui.spin.stopState();
+    await wait(turboOn() ? 100 : 300);
+    ui.spin.idle();
+  });
+  hud.on('skipRequested', () => board.skip());
+  hud.on('autoplayStarted', async () => {
+    while (ui.autoplay.isActive) {
+      if (ui.balance.get() < ui.bet.get()) {
+        ui.autoplay.stop();
+        break;
+      }
+      await playSpin();
+      ui.spin.idle();
+      await wait(turboOn() ? 150 : 300);
+    }
+  });
+
+  // ---- responsive layout ----
+  function layout(): void {
+    const w = app.screen.width;
+    const h = app.screen.height;
+    const portrait = w / h < 1;
+
+    // Background: cover-fit, swapping desk/mobile art by orientation.
+    const desired = portrait ? assets.bgMobile : assets.bgDesk;
+    if (bg.texture !== desired) bg.texture = desired;
+    cover(bg, w, h);
+    bg.x = w / 2;
+    bg.y = h / 2;
+
+    // Logo: top-centered, width a fraction of the screen.
+    const logoW = Math.min(w * (portrait ? 0.72 : 0.34), 560);
+    logo.width = logoW;
+    logo.height = logoW * (assets.logo.height / assets.logo.width);
+    logo.x = w / 2;
+    logo.y = Math.max(h * 0.012, 8);
+
+    const topReserve = logo.y + logo.height + h * 0.01;
+    const bottomReserve = h * (portrait ? 0.2 : 0.16); // HUD controls band
+    board.layout(w, h, topReserve, bottomReserve);
+  }
+
+  app.renderer.on('resize', layout);
+  layout();
+
+  // Dev handle for debugging in the console.
+  (window as unknown as Record<string, unknown>).__game = { app, hud, board };
+}
+
+/** The whole HUD as one config object. */
+function buildSpec(): UISpec {
+  return {
+    theme: { preset: 'default' },
+    currency: { code: 'USD', symbol: '$', display: 'symbol', position: 'prefix', decimals: 2 },
+    betLadder: resolveBetLadder(BET_LADDER, START_BET),
+    turbo: { modes: 2 },
+    autoplay: { mode: 'options', options: [5, 10, 25, 50, 100, Infinity] },
+    spin: { press: 'tap' },
+    rtp: 96,
+    game: { name: 'Fruit Slot — Hold & Win', version: '0.1.0' },
+  };
+}
+
+/** Scale a centered sprite to cover a w×h box (like CSS background-size: cover). */
+function cover(sprite: Sprite, w: number, h: number): void {
+  const tex: Texture = sprite.texture;
+  const scale = Math.max(w / tex.width, h / tex.height);
+  sprite.width = tex.width * scale;
+  sprite.height = tex.height * scale;
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+void main();

@@ -1,0 +1,92 @@
+{
+  "frames": {
+    "0": {
+      "frame": {"x": 75, "y": 97, "w": 202, "h": 275},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 75, "y": 97, "w": 202, "h": 275},
+      "sourceSize": {"w": 202, "h": 275}
+    },
+    "1": {
+      "frame": {"x": 292, "y": 99, "w": 127, "h": 271},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 292, "y": 99, "w": 127, "h": 271},
+      "sourceSize": {"w": 127, "h": 271}
+    },
+    "2": {
+      "frame": {"x": 448, "y": 97, "w": 189, "h": 271},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 448, "y": 97, "w": 189, "h": 271},
+      "sourceSize": {"w": 189, "h": 271}
+    },
+    "3": {
+      "frame": {"x": 657, "y": 97, "w": 195, "h": 275},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 657, "y": 97, "w": 195, "h": 275},
+      "sourceSize": {"w": 195, "h": 275}
+    },
+    "4": {
+      "frame": {"x": 875, "y": 99, "w": 207, "h": 271},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 875, "y": 99, "w": 207, "h": 271},
+      "sourceSize": {"w": 207, "h": 271}
+    },
+    "5": {
+      "frame": {"x": 1105, "y": 100, "w": 193, "h": 272},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 1105, "y": 100, "w": 193, "h": 272},
+      "sourceSize": {"w": 193, "h": 272}
+    },
+    "6": {
+      "frame": {"x": 77, "y": 423, "w": 198, "h": 276},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 77, "y": 423, "w": 198, "h": 276},
+      "sourceSize": {"w": 198, "h": 276}
+    },
+    "7": {
+      "frame": {"x": 352, "y": 428, "w": 191, "h": 268},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 352, "y": 428, "w": 191, "h": 268},
+      "sourceSize": {"w": 191, "h": 268}
+    },
+    "8": {
+      "frame": {"x": 605, "y": 423, "w": 198, "h": 276},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 605, "y": 423, "w": 198, "h": 276},
+      "sourceSize": {"w": 198, "h": 276}
+    },
+    "9": {
+      "frame": {"x": 851, "y": 423, "w": 198, "h": 274},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 851, "y": 423, "w": 198, "h": 274},
+      "sourceSize": {"w": 198, "h": 274}
+    },
+    "x": {
+      "frame": {"x": 1088, "y": 436, "w": 209, "h": 256},
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {"x": 1088, "y": 436, "w": 209, "h": 256},
+      "sourceSize": {"w": 209, "h": 256}
+    }
+  },
+  "meta": {
+    "app": "Custom Atlas",
+    "version": "1.0",
+    "image": "numbers.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 1376,
+      "h": 768
+    },
+    "scale": "1"
+  }
+}

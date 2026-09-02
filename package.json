@@ -1,0 +1,24 @@
+{
+  "name": "fruit-slot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fruit Slot — Hold & Win. PixiJS 8 slot built on pixi-reels + @open-slot-ui.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@open-slot-ui/core": "^0.13.4",
+    "@open-slot-ui/pixi": "^0.13.4",
+    "gsap": "^3.13.0",
+    "pixi-reels": "^2.4.0",
+    "pixi.js": "^8.20.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  }
+}
