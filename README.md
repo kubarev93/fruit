@@ -68,6 +68,7 @@ await p;                        // resolves when landed
 - [x] Line evaluation (3 rows + 2 diagonals, wild substitution)
 - [x] Win presentation: animated gold frames on winners + traced payline
 - [x] Big/Mega/Epic win splash: coin burst + tier text + multiplier count-up
+- [x] Winning-symbol pop + dim (spotlight), anticipation tease, line cycling, intro
 - [ ] Sound (music `main.mp3` + win SFX; needs a user-gesture to start)
 - [ ] Hold & Win bonus: money symbols, respins, GRAND/MAJOR/MINOR/MINI jackpots
 - [ ] RGS wiring (real server results, wallet)
