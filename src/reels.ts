@@ -9,7 +9,10 @@ import {
   CELL,
   COIN,
   COIN_VALUES,
-  GAP,
+  FRAME_COL_PITCH_FRAC,
+  FRAME_ROW_SPAN_FRAC,
+  GAP_X,
+  GAP_Y,
   JACKPOTS,
   PAYLINES,
   PAYOUTS,
@@ -26,8 +29,6 @@ type JackpotId = 'mini' | 'minor' | 'major' | 'grand';
 /** A pending line is worth teasing the last reel for if it could pay this much. */
 const TEASE_MIN_PAYOUT = 14;
 
-/** Fraction of the frame art that is border (each side), used to inset the reels. */
-const FRAME_PAD = 0.055;
 
 export interface Board {
   /** The whole board (wooden frame + reels + win overlay), scaled to fit. */
@@ -67,7 +68,7 @@ export function createBoard(
     .reels(REELS)
     .visibleCells(ROWS)
     .symbolSize(CELL, CELL)
-    .symbolGap(GAP, GAP)
+    .symbolGap(GAP_X, GAP_Y)
     .renderer(renderer)
     .symbols((r) => {
       for (const [id, tex] of Object.entries(symbolTextures)) {
@@ -347,13 +348,13 @@ export function createBoard(
   }
 
   function layout(width: number, height: number, top: number, bottom: number): void {
-    // Fit the frame art around the reel block, then scale the board into the
-    // free vertical band between the logo (top) and the HUD (bottom).
-    const frameAspect = frameTexture.width / frameTexture.height;
-    const innerW = frameTexture.width * (1 - FRAME_PAD * 2);
-    const artScale = BLOCK_W / innerW;
-    frame.width = frameTexture.width * artScale;
-    frame.height = frame.width / frameAspect;
+    // Size the frame from the MEASURED grid.png geometry so the reels land in
+    // its columns: the reel column pitch (CELL+GAP_X) equals the frame's column
+    // pitch, and the reel block fills the frame's open vertical span. Scaled
+    // (slightly non-uniform) rather than assuming even thirds.
+    const reelPitchX = CELL + GAP_X;
+    frame.width = reelPitchX / FRAME_COL_PITCH_FRAC;
+    frame.height = BLOCK_H / FRAME_ROW_SPAN_FRAC;
 
     const boardW = frame.width;
     const boardH = frame.height;

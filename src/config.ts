@@ -93,11 +93,21 @@ export const ROWS = 3;
  * right size — no giant symbols mid-spin — while preserving full resolution.
  */
 export const CELL = 768;
-export const GAP = 32;
+/** Gaps between symbols. Horizontal is wider to match the frame's column pitch. */
+export const GAP_X = 150;
+export const GAP_Y = 58;
 
 /** Pixel width/height of the 3×3 symbol block (no frame). */
-export const BLOCK_W = REELS * CELL + (REELS - 1) * GAP;
-export const BLOCK_H = ROWS * CELL + (ROWS - 1) * GAP;
+export const BLOCK_W = REELS * CELL + (REELS - 1) * GAP_X;
+export const BLOCK_H = ROWS * CELL + (ROWS - 1) * GAP_Y;
+
+/**
+ * grid.png structure, measured from the art (344×315): the three columns sit at
+ * x = 62 / 172 / 282 (pitch ≈ 110), and the open reel area runs y = 10..300.
+ * The reels are aligned to this instead of assuming even thirds.
+ */
+export const FRAME_COL_PITCH_FRAC = 110 / 344; // reel pitch ÷ frame width
+export const FRAME_ROW_SPAN_FRAC = 290 / 315; // reel block height ÷ frame height
 
 /** A payline as a list of [reelIndex, cellIndex] cells, left → right. */
 export type Payline = ReadonlyArray<readonly [number, number]>;
