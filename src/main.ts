@@ -62,14 +62,14 @@ async function main(): Promise<void> {
   const snap = (x: number): number => Math.round(x * 1e8) / 1e8;
   const turboOn = (): boolean => ui.turbo?.isOn ?? false;
 
-  // ---- one round ----
-  async function playSpin(): Promise<void> {
+  // ---- one round (optionally forced to a specific grid, for the mock panel) ----
+  async function playSpin(forced?: string[][]): Promise<void> {
     const bet = ui.bet.get();
     ui.spin.busy();
     board.clearWins();
     ui.balance.set(snap(ui.balance.get() - bet));
 
-    const grid = board.randomGrid();
+    const grid = forced ?? board.randomGrid();
     await board.spin(grid, turboOn());
 
     const wins = evaluate(grid);
@@ -84,12 +84,23 @@ async function main(): Promise<void> {
     ui.reportRound(win, bet);
   }
 
-  hud.on('spinRequested', async () => {
+  let rounding = false;
+  async function doRound(forced?: string[][]): Promise<void> {
+    if (rounding) return;
+    rounding = true;
+    try {
+      await playSpin(forced);
+      ui.spin.stopState();
+      await wait(turboOn() ? 100 : 300);
+      ui.spin.idle();
+    } finally {
+      rounding = false;
+    }
+  }
+
+  hud.on('spinRequested', () => {
     if (ui.balance.get() < ui.bet.get()) return;
-    await playSpin();
-    ui.spin.stopState();
-    await wait(turboOn() ? 100 : 300);
-    ui.spin.idle();
+    void doRound();
   });
   hud.on('skipRequested', () => board.skip());
   hud.on('autoplayStarted', async () => {
@@ -134,14 +145,30 @@ async function main(): Promise<void> {
   layout();
 
   // Intro: fade the scene in and pop the board.
-  world.alpha = 0;
-  gsap.to(world, { alpha: 1, duration: 0.5, ease: 'power1.out' });
-  const s0 = board.view.scale.x;
-  board.view.scale.set(s0 * 0.82);
-  gsap.to(board.view.scale, { x: s0, y: s0, duration: 0.6, ease: 'back.out(1.7)' });
+  function playIntro(): void {
+    world.alpha = 0;
+    gsap.to(world, { alpha: 1, duration: 0.5, ease: 'power1.out' });
+    const s0 = board.view.scale.x;
+    board.view.scale.set(s0 * 0.82);
+    gsap.to(board.view.scale, { x: s0, y: s0, duration: 0.6, ease: 'back.out(1.7)' });
+  }
+  playIntro();
 
   // Dev handle for debugging in the console.
   (window as unknown as Record<string, unknown>).__game = { app, hud, board, winfx };
+
+  // Mock panel (?mocks=1): buttons to trigger every animation on demand.
+  if (new URLSearchParams(location.search).has('mocks')) {
+    const { mountMocks } = await import('./mocks');
+    mountMocks({
+      round: (grid) => void doRound(grid),
+      splash: (tier, mult) => void winfx.play(tier, mult),
+      frames: (wins) => void board.showWins(wins),
+      clear: () => board.clearWins(),
+      intro: () => playIntro(),
+      isBusy: () => rounding,
+    });
+  }
 }
 
 /** The whole HUD as one config object. */

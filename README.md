@@ -25,6 +25,13 @@ npm run build      # typecheck + production build → dist/
 npm run typecheck
 ```
 
+### Animation mock panel
+
+Open **http://localhost:5173/?mocks=1** for a debug panel that triggers every
+animation on demand — forced-outcome spins (small / big / mega / epic / near-miss
+anticipation), Wild glow, the Big/Mega/Epic splashes, win frames + payline, and
+the intro. Click the header to collapse it. (`src/mocks.ts`.)
+
 ## Layout
 
 ```
