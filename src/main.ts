@@ -6,6 +6,7 @@ import type { UISpec } from '@open-slot-ui/core';
 import { gsap } from 'gsap';
 import { loadGameAssets } from './assets';
 import { createBoard } from './reels';
+import { createWinFx, winTier } from './winfx';
 import { evaluate } from './config';
 
 const START_BALANCE = 12343.67;
@@ -37,8 +38,12 @@ async function main(): Promise<void> {
   logo.anchor.set(0.5, 0);
   world.addChild(logo);
 
-  const board = createBoard(app.ticker, app.renderer, assets.symbols, assets.frame);
+  const board = createBoard(app.ticker, app.renderer, assets.symbols, assets.frame, assets.winFrame);
   world.addChild(board.view);
+
+  // Big/Mega/Epic win splash (coins + tier text + multiplier count-up).
+  const winfx = createWinFx(assets);
+  world.addChild(winfx.view);
 
   // ---- HUD (spin button, balance, bet, autoplay, menu) in one call ----
   const { icons, spinSkin } = await loadBuiltinArt();
@@ -63,7 +68,10 @@ async function main(): Promise<void> {
     const wins = evaluate(grid);
     const win = snap(wins.reduce((sum, w) => sum + w.multiplier * bet, 0));
     if (wins.length > 0) {
-      await board.showWins(wins);
+      const framesP = board.showWins(wins);
+      const tier = winTier(win / bet);
+      if (tier) await winfx.play(tier, win / bet);
+      await framesP;
       ui.balance.set(snap(ui.balance.get() + win));
     }
     ui.reportRound(win, bet);
@@ -112,13 +120,14 @@ async function main(): Promise<void> {
     const topReserve = logo.y + logo.height + h * 0.01;
     const bottomReserve = h * (portrait ? 0.2 : 0.16); // HUD controls band
     board.layout(w, h, topReserve, bottomReserve);
+    winfx.layout(w, h);
   }
 
   app.renderer.on('resize', layout);
   layout();
 
   // Dev handle for debugging in the console.
-  (window as unknown as Record<string, unknown>).__game = { app, hud, board };
+  (window as unknown as Record<string, unknown>).__game = { app, hud, board, winfx };
 }
 
 /** The whole HUD as one config object. */

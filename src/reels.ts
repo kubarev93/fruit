@@ -1,4 +1,4 @@
-import { Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { AnimatedSprite, Container, Graphics, Sprite, Texture } from 'pixi.js';
 import type { Renderer, Ticker } from 'pixi.js';
 import { ReelSetBuilder, SpriteSymbol } from 'pixi-reels';
 import type { ReelSet, ColumnTarget } from 'pixi-reels';
@@ -40,6 +40,7 @@ export function createBoard(
   renderer: Renderer,
   symbolTextures: Record<SymbolId, Texture>,
   frameTexture: Texture,
+  winFrameTextures: Texture[],
 ): Board {
   const view = new Container();
 
@@ -110,7 +111,7 @@ export function createBoard(
   }
 
   // --- win presentation ---
-  const frames: Graphics[] = [];
+  const winFrames: AnimatedSprite[] = [];
   const line = new Graphics();
   overlay.addChild(line);
   const tweens: gsap.core.Tween[] = [];
@@ -128,26 +129,24 @@ export function createBoard(
     clearWins();
     if (wins.length === 0) return;
 
+    // A burning gold frame on every unique winning cell.
     const seen = new Set<string>();
     for (const win of wins) {
       for (const [reel, cell] of win.cells) {
         const key = `${reel}:${cell}`;
         if (seen.has(key)) continue;
         seen.add(key);
-        const r = cellRect(reel, cell);
-        const g = new Graphics();
-        g.roundRect(r.x + 4, r.y + 4, r.w - 8, r.h - 8, 22)
-          .stroke({ color: 0xffd23f, width: 7, alignment: 0.5 })
-          .stroke({ color: 0xff8a00, width: 3, alignment: 1 });
-        overlay.addChild(g);
-        frames.push(g);
-        tweens.push(
-          gsap.fromTo(
-            g,
-            { alpha: 0.25 },
-            { alpha: 1, duration: 0.5, yoyo: true, repeat: -1, ease: 'sine.inOut' },
-          ),
-        );
+        const c = cellCenter(reel, cell);
+        const anim = new AnimatedSprite(winFrameTextures);
+        anim.anchor.set(0.5);
+        anim.position.set(c.x, c.y);
+        anim.width = CELL * 1.08;
+        anim.height = CELL * 1.08;
+        anim.animationSpeed = 0.5;
+        anim.loop = true;
+        anim.play();
+        overlay.addChild(anim);
+        winFrames.push(anim);
       }
     }
 
@@ -157,7 +156,7 @@ export function createBoard(
     line.clear();
     line.moveTo(pts[0]!.x, pts[0]!.y);
     for (let i = 1; i < pts.length; i++) line.lineTo(pts[i]!.x, pts[i]!.y);
-    line.stroke({ color: 0xffe14d, width: 10, cap: 'round', join: 'round', alpha: 0.95 });
+    line.stroke({ color: 0xffe14d, width: 12, cap: 'round', join: 'round', alpha: 0.95 });
     line.alpha = 0;
     tweens.push(gsap.to(line, { alpha: 1, duration: 0.35, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
 
@@ -167,8 +166,8 @@ export function createBoard(
   function clearWins(): void {
     for (const t of tweens) t.kill();
     tweens.length = 0;
-    for (const g of frames) g.destroy();
-    frames.length = 0;
+    for (const a of winFrames) a.destroy();
+    winFrames.length = 0;
     line.clear();
     line.alpha = 0;
   }
