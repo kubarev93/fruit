@@ -82,5 +82,5 @@ await p;                        // resolves when landed
 - [x] Winning-symbol pop + dim (spotlight), anticipation tease, line cycling, intro
 - [x] Background music (`main.mp3`) wired to the HUD mute + music volume
 - [x] Money symbols (coins): gold tile + cash value / GRAND·MAJOR·MINOR·MINI jackpot + glow
-- [ ] Hold & Win bonus mechanic: 6+ coins → respins, hold, collect values/jackpots
+- [x] Hold & Win bonus: 4+ coins → hold + respins (reset on a new coin) → collect
 - [ ] RGS wiring (real server results, wallet)
