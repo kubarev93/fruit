@@ -80,6 +80,7 @@ await p;                        // resolves when landed
 - [x] Win presentation: animated gold frames on winners + traced payline
 - [x] Big/Mega/Epic win splash: coin burst + tier text + multiplier count-up
 - [x] Winning-symbol pop + dim (spotlight), anticipation tease, line cycling, intro
-- [ ] Sound (music `main.mp3` + win SFX; needs a user-gesture to start)
-- [ ] Hold & Win bonus: money symbols, respins, GRAND/MAJOR/MINOR/MINI jackpots
+- [x] Background music (`main.mp3`) wired to the HUD mute + music volume
+- [x] Money symbols (coins): gold tile + cash value / GRAND·MAJOR·MINOR·MINI jackpot + glow
+- [ ] Hold & Win bonus mechanic: 6+ coins → respins, hold, collect values/jackpots
 - [ ] RGS wiring (real server results, wallet)
