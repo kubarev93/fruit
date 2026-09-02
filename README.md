@@ -40,8 +40,12 @@ public/assets/  game art (symbols, backgrounds, logo, frame, jackpots, win FX, a
 
 `a`=Wild (W) · `b`=grapes · `c`=coconut · `d`=strawberry · `k`=pear · `l`=heart ·
 `m`=clover · `n`=spade · `o`=diamond. `v` (gold "C") and `z` (blank money tile)
-plus the GRAND/MAJOR/MINOR/MINI jackpots and the win animations are reserved for
-the Hold & Win bonus (next phase).
+plus the GRAND/MAJOR/MINOR/MINI jackpots are reserved for the Hold & Win bonus.
+
+**Animated pack assets in use:** `win-frame` (winner cells), `win-text`
+(BIG/MEGA/EPIC splash), `win-moneti` (coin burst), `numbers` (win count-up),
+`bonus-frame` (Wild glow). The `big/mega/epic-win` sheets are unused — all three
+JSONs are byte-identical and the art is an un-keyed green-screen export.
 
 ## How the spin works
 
