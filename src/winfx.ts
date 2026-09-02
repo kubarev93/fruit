@@ -1,4 +1,4 @@
-import { AnimatedSprite, Container, Graphics, Sprite, Texture } from 'pixi.js';
+import { AnimatedSprite, Container, Graphics, Sprite, Text } from 'pixi.js';
 import { gsap } from 'gsap';
 import type { GameAssets } from './assets';
 
@@ -48,33 +48,29 @@ export function createWinFx(assets: GameAssets): WinFx {
   textWrap.addChild(text);
   group.addChild(textWrap);
 
-  const counter = new Container();
+  // The win multiplier counter is ONE Text object (updated via `.text`) — a
+  // single display object like the tier sprite, so it stays put. (An earlier
+  // multi-sprite glyph counter drifted under the per-frame count-up updates.)
+  const counter = new Text({
+    text: '0x',
+    style: {
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      fontSize: GLYPH_H,
+      fontWeight: '900',
+      fill: '#ffffff',
+      stroke: { color: '#1b3a6b', width: GLYPH_H * 0.11, join: 'round' },
+      dropShadow: { color: '#000000', alpha: 0.35, blur: 4, distance: 4, angle: Math.PI / 2 },
+    },
+  });
+  counter.anchor.set(0.5);
   group.addChild(counter);
 
   let screenW = 0;
   let screenH = 0;
   const timeline = { tl: null as gsap.core.Timeline | null };
 
-  /**
-   * Rebuild the counter as glyph sprites for `str` (e.g. "42x"), centered.
-   * Digits are laid out monospace and scaled by the untrimmed glyph height so
-   * the trimmed frames don't jitter or vary in size as the value counts up.
-   */
   function renderNumber(str: string): void {
-    counter.removeChildren().forEach((c) => c.destroy());
-    const cell = GLYPH_H * 0.66; // fixed advance per glyph
-    const chars = [...str];
-    const totalW = chars.length * cell;
-    chars.forEach((ch, i) => {
-      const t: Texture | undefined = assets.numbers[ch];
-      if (!t) return;
-      const s = new Sprite(t);
-      s.scale.set(GLYPH_H / t.orig.height);
-      s.anchor.set(0.5);
-      s.position.set(-totalW / 2 + cell * (i + 0.5), 0);
-      counter.addChild(s);
-    });
-    counter.pivot.set(0, 0);
+    counter.text = str;
   }
 
   function layout(width: number, height: number): void {
