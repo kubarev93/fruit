@@ -7,6 +7,7 @@ import { gsap } from 'gsap';
 import { loadGameAssets } from './assets';
 import { createBoard } from './reels';
 import { createWinFx, winTier } from './winfx';
+import { initAudio } from './audio';
 import { evaluate } from './config';
 
 const START_BALANCE = 12343.67;
@@ -58,6 +59,9 @@ async function main(): Promise<void> {
   const ui = hud.ui;
   ui.balance.set(START_BALANCE);
   ui.bet.set(START_BET);
+
+  // Background music (main.mp3), following the HUD's mute + music volume.
+  initAudio(hud);
 
   const snap = (x: number): number => Math.round(x * 1e8) / 1e8;
   const turboOn = (): boolean => ui.turbo?.isOn ?? false;
