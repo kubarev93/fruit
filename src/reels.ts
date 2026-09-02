@@ -196,9 +196,14 @@ export function createBoard(
 
   function drawLine(cells: LineWin['cells']): void {
     const pts = cells.map(([reel, cell]) => cellCenter(reel, cell));
+    // Extend the line past the outer symbols so it exits toward the frame edges.
+    const ext = CELL * 0.5;
+    const start = { x: -ext, y: pts[0]!.y };
+    const end = { x: BLOCK_W + ext, y: pts[pts.length - 1]!.y };
+    const path = [start, ...pts, end];
     line.clear();
-    line.moveTo(pts[0]!.x, pts[0]!.y);
-    for (let i = 1; i < pts.length; i++) line.lineTo(pts[i]!.x, pts[i]!.y);
+    line.moveTo(path[0]!.x, path[0]!.y);
+    for (let i = 1; i < path.length; i++) line.lineTo(path[i]!.x, path[i]!.y);
     line.stroke({ color: 0xffe14d, width: 12, cap: 'round', join: 'round', alpha: 0.95 });
   }
 
