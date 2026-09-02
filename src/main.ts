@@ -8,7 +8,7 @@ import { loadGameAssets } from './assets';
 import { createBoard } from './reels';
 import { createWinFx, winTier } from './winfx';
 import { initAudio } from './audio';
-import { evaluate } from './config';
+import { evaluate, BONUS_TRIGGER, COIN } from './config';
 
 const START_BALANCE = 12343.67;
 const BET_LADDER = [0.2, 0.4, 0.6, 0.8, 1, 2, 3, 5, 10, 20, 50];
@@ -86,7 +86,24 @@ async function main(): Promise<void> {
       await framesP;
       ui.balance.set(snap(ui.balance.get() + win));
     }
-    ui.reportRound(win, bet);
+
+    // Hold & Win: enough money symbols on the grid triggers the respin bonus.
+    let bonusWin = 0;
+    if (board.countCoins(grid) >= BONUS_TRIGGER) {
+      const coinCells: Array<{ reel: number; cell: number }> = [];
+      grid.forEach((col, reel) =>
+        col.forEach((s, cell) => {
+          if (s === COIN) coinCells.push({ reel, cell });
+        }),
+      );
+      bonusWin = await board.runBonus(bet, coinCells);
+      if (bonusWin > 0) {
+        ui.balance.set(snap(ui.balance.get() + bonusWin));
+        await winfx.play(winTier(bonusWin / bet) ?? 'big', bonusWin / bet);
+      }
+    }
+
+    ui.reportRound(snap(win + bonusWin), bet);
   }
 
   let rounding = false;

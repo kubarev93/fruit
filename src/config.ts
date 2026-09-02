@@ -81,6 +81,19 @@ export const JACKPOTS: Jackpot[] = [
 /** Cash values (× bet) a money symbol can carry. */
 export const COIN_VALUES = [1, 2, 3, 5, 8, 10, 15, 20, 25, 50, 100];
 
+/** Jackpot payout (× bet) when a money symbol carrying that tier is collected. */
+export const JACKPOT_VALUES: Record<'mini' | 'minor' | 'major' | 'grand', number> = {
+  mini: 20,
+  minor: 100,
+  major: 500,
+  grand: 5000,
+};
+
+/** Hold & Win bonus tuning. */
+export const BONUS_TRIGGER = 4; // coins on a spin to start the bonus
+export const BONUS_RESPINS = 3; // respins granted, reset whenever a new coin lands
+export const COIN_LAND_CHANCE = 0.24; // per empty cell, per respin
+
 /** Grid shape. */
 export const REELS = 3;
 export const ROWS = 3;

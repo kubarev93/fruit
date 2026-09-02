@@ -90,6 +90,10 @@ const GROUPS: Group[] = [
         label: 'Монетки + вайлд',
         run: (a) => a.round(grid(['coin', 'wild', 'clover'], ['coin', 'coin', 'diamond'], ['grapes', 'coin', 'coin'])),
       },
+      {
+        label: 'Hold & Win (бонус)',
+        run: (a) => a.round(grid(['coin', 'coin', 'clover'], ['coin', 'heart', 'coin'], ['coin', 'pear', 'diamond'])),
+      },
     ],
   },
   {
