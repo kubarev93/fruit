@@ -1,19 +1,25 @@
 import { AnimatedSprite, Container, Graphics, Sprite, Texture } from 'pixi.js';
 import type { Renderer, Ticker } from 'pixi.js';
-import { ReelSetBuilder, SpriteSymbol } from 'pixi-reels';
-import type { ReelSet, ColumnTarget } from 'pixi-reels';
+import { ReelSetBuilder, SpriteSymbol, SymbolSpotlight } from 'pixi-reels';
+import type { ReelSet, ColumnTarget, SymbolPosition } from 'pixi-reels';
 import { gsap } from 'gsap';
 import {
   BLOCK_H,
   BLOCK_W,
   CELL,
   GAP,
+  PAYLINES,
+  PAYOUTS,
   REELS,
   ROWS,
   WEIGHTS,
+  WILD,
   type LineWin,
   type SymbolId,
 } from './config';
+
+/** A pending line is worth teasing the last reel for if it could pay this much. */
+const TEASE_MIN_PAYOUT = 14;
 
 /** Fraction of the frame art that is border (each side), used to inset the reels. */
 const FRAME_PAD = 0.055;
@@ -78,6 +84,15 @@ export function createBoard(
   overlay.y = reelLayer.y;
   view.addChild(overlay);
 
+  // Built-in spotlight: dims non-winners + pops the winning symbols (their
+  // SpriteSymbol.playWin scale pulse). Uses the reel set's public subsystems.
+  let spotlight: SymbolSpotlight | null = null;
+  try {
+    spotlight = new SymbolSpotlight([...reelSet.reels], reelSet.viewport, reelSet.events);
+  } catch {
+    spotlight = null;
+  }
+
   const symbolIds = Object.keys(symbolTextures) as SymbolId[];
   const weighted: SymbolId[] = [];
   for (const id of symbolIds) for (let i = 0; i < (WEIGHTS[id] ?? 1); i++) weighted.push(id);
@@ -93,12 +108,32 @@ export function createBoard(
     return grid.map((visible) => ({ visible }));
   }
 
+  /** Tease the last reel when the first two reels already show a high pair. */
+  function teaseLastReel(grid: string[][]): boolean {
+    for (const line of PAYLINES) {
+      const [r0, c0] = line[0]!;
+      const [r1, c1] = line[1]!;
+      const a = grid[r0]?.[c0];
+      const b = grid[r1]?.[c1];
+      if (a == null || b == null) continue;
+      const compatible = a === b || a === WILD || b === WILD;
+      if (!compatible) continue;
+      const anchor = (a === WILD ? b : a) as SymbolId;
+      if (anchor === WILD || (PAYOUTS[anchor] ?? 0) >= TEASE_MIN_PAYOUT) return true;
+    }
+    return false;
+  }
+
   async function spin(grid: string[][], turbo: boolean): Promise<void> {
     clearWins();
     const p = reelSet.spin();
     // Give the reels a beat of free spin before revealing the outcome.
     if (!turbo) await wait(220);
     reelSet.setResult(toTargets(grid));
+    // Anticipation: slow the final reel dramatically when a big line is pending.
+    if (!turbo && teaseLastReel(grid)) {
+      reelSet.setAnticipation([REELS - 1], { slowdown: { from: 0.5, to: 0.12 } });
+    }
     await p;
   }
 
@@ -115,6 +150,7 @@ export function createBoard(
   const line = new Graphics();
   overlay.addChild(line);
   const tweens: gsap.core.Tween[] = [];
+  let lineCycle: gsap.core.Tween | null = null;
 
   function cellRect(reel: number, cell: number): { x: number; y: number; w: number; h: number } {
     const b = reelSet.getCellBounds(reel, cell);
@@ -125,17 +161,27 @@ export function createBoard(
     return { x: r.x + r.w / 2, y: r.y + r.h / 2 };
   }
 
+  function drawLine(cells: LineWin['cells']): void {
+    const pts = cells.map(([reel, cell]) => cellCenter(reel, cell));
+    line.clear();
+    line.moveTo(pts[0]!.x, pts[0]!.y);
+    for (let i = 1; i < pts.length; i++) line.lineTo(pts[i]!.x, pts[i]!.y);
+    line.stroke({ color: 0xffe14d, width: 12, cap: 'round', join: 'round', alpha: 0.95 });
+  }
+
   async function showWins(wins: LineWin[]): Promise<void> {
     clearWins();
     if (wins.length === 0) return;
 
     // A burning gold frame on every unique winning cell.
     const seen = new Set<string>();
+    const positions: SymbolPosition[] = [];
     for (const win of wins) {
       for (const [reel, cell] of win.cells) {
         const key = `${reel}:${cell}`;
         if (seen.has(key)) continue;
         seen.add(key);
+        positions.push({ reelIndex: reel, cellIndex: cell });
         const c = cellCenter(reel, cell);
         const anim = new AnimatedSprite(winFrameTextures);
         anim.anchor.set(0.5);
@@ -150,15 +196,28 @@ export function createBoard(
       }
     }
 
-    // Draw + trace the payline of the highest win.
-    const best = [...wins].sort((a, b) => b.multiplier - a.multiplier)[0]!;
-    const pts = best.cells.map(([reel, cell]) => cellCenter(reel, cell));
-    line.clear();
-    line.moveTo(pts[0]!.x, pts[0]!.y);
-    for (let i = 1; i < pts.length; i++) line.lineTo(pts[i]!.x, pts[i]!.y);
-    line.stroke({ color: 0xffe14d, width: 12, cap: 'round', join: 'round', alpha: 0.95 });
+    // Pop the winning symbols themselves + dim the rest (built-in spotlight).
+    spotlight?.show(positions, { dimAmount: 0.35, playWinAnimation: true, promoteAboveMask: true });
+
+    // Trace the payline(s). With multiple wins, cycle through them.
+    const ordered = [...wins].sort((a, b) => b.multiplier - a.multiplier);
+    drawLine(ordered[0]!.cells);
     line.alpha = 0;
     tweens.push(gsap.to(line, { alpha: 1, duration: 0.35, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
+    if (ordered.length > 1) {
+      let idx = 0;
+      lineCycle = gsap.to(
+        {},
+        {
+          duration: 0.9,
+          repeat: -1,
+          onRepeat: () => {
+            idx = (idx + 1) % ordered.length;
+            drawLine(ordered[idx]!.cells);
+          },
+        },
+      );
+    }
 
     await wait(1600);
   }
@@ -166,6 +225,9 @@ export function createBoard(
   function clearWins(): void {
     for (const t of tweens) t.kill();
     tweens.length = 0;
+    lineCycle?.kill();
+    lineCycle = null;
+    spotlight?.hide();
     for (const a of winFrames) a.destroy();
     winFrames.length = 0;
     line.clear();

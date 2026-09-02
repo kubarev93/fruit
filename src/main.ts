@@ -126,6 +126,13 @@ async function main(): Promise<void> {
   app.renderer.on('resize', layout);
   layout();
 
+  // Intro: fade the scene in and pop the board.
+  world.alpha = 0;
+  gsap.to(world, { alpha: 1, duration: 0.5, ease: 'power1.out' });
+  const s0 = board.view.scale.x;
+  board.view.scale.set(s0 * 0.82);
+  gsap.to(board.view.scale, { x: s0, y: s0, duration: 0.6, ease: 'back.out(1.7)' });
+
   // Dev handle for debugging in the console.
   (window as unknown as Record<string, unknown>).__game = { app, hud, board, winfx };
 }
