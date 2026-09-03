@@ -6,11 +6,11 @@ import type { UISpec } from '@open-slot-ui/core';
 import { gsap } from 'gsap';
 import { loadGameAssets } from './assets';
 import { createBoard } from './reels';
-import { createWinFx, winTier } from './winfx';
+import { createWinFx } from './winfx';
 import { initAudio, duckMusic } from './audio';
 import { initSfx, playSfx, stopSfx } from './sfx';
 import { createFlares } from './flares';
-import { evaluate, BONUS_TRIGGER, COIN } from './config';
+import { evaluate, winTier, BONUS_TRIGGER, COIN } from './config';
 
 const START_BALANCE = 12343.67;
 const BET_LADDER = [0.2, 0.4, 0.6, 0.8, 1, 2, 3, 5, 10, 20, 50];

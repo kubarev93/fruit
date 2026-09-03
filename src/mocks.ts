@@ -1,5 +1,5 @@
 import type { LineWin, SymbolId } from './config';
-import type { WinTier } from './winfx';
+import type { WinTier } from './config';
 
 /** The hooks the mock panel drives (all provided by main.ts). */
 export interface MockApi {

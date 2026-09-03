@@ -1,16 +1,7 @@
 import { AnimatedSprite, Container, Graphics, Sprite, Text } from 'pixi.js';
 import { gsap } from 'gsap';
 import type { GameAssets } from './assets';
-
-export type WinTier = 'big' | 'mega' | 'epic';
-
-/** Win tier from the total win as a multiple of the bet (null = no big splash). */
-export function winTier(multiplier: number): WinTier | null {
-  if (multiplier >= 50) return 'epic';
-  if (multiplier >= 25) return 'mega';
-  if (multiplier >= 10) return 'big';
-  return null;
-}
+import type { WinTier } from './config';
 
 export interface WinFx {
   readonly view: Container;

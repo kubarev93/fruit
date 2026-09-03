@@ -184,3 +184,12 @@ export function evaluate(grid: string[][]): LineWin[] {
   });
   return wins;
 }
+
+export type WinTier = 'big' | 'mega' | 'epic';
+
+export function winTier(multiplier: number): WinTier | null {
+  if (multiplier >= 50) return 'epic';
+  if (multiplier >= 25) return 'mega';
+  if (multiplier >= 10) return 'big';
+  return null;
+}
