@@ -3,6 +3,7 @@ import type { Renderer, Ticker } from 'pixi.js';
 import { ReelSetBuilder, SpriteSymbol, SymbolSpotlight } from 'pixi-reels';
 import type { ReelSet, ColumnTarget, SymbolPosition } from 'pixi-reels';
 import { gsap } from 'gsap';
+import { playSfx } from './sfx';
 import {
   BLOCK_H,
   BLOCK_W,
@@ -63,6 +64,8 @@ export function createBoard(
   winFrameTextures: Texture[],
   bonusFrameTextures: Texture[],
   jackpotTextures: Record<JackpotId, Texture>,
+  symbolBurstTextures: Texture[],
+  symbolCoinsTextures: Texture[],
 ): Board {
   const view = new Container();
 
@@ -109,6 +112,8 @@ export function createBoard(
     spotlight = null;
   }
 
+  reelSet.events.on('spin:reelLanded', () => playSfx('reelLanding'));
+
   const symbolIds = Object.keys(symbolTextures) as SymbolId[];
   const weighted: SymbolId[] = [];
   for (const id of symbolIds) for (let i = 0; i < (WEIGHTS[id] ?? 1); i++) weighted.push(id);
@@ -144,6 +149,8 @@ export function createBoard(
     clearWins();
     clearWilds();
     clearCoins();
+    playSfx('spin-start');
+    playSfx('reelsSpin');
     const p = reelSet.spin();
     // Give the reels a beat of free spin before revealing the outcome.
     if (!turbo) await wait(220);
@@ -151,10 +158,12 @@ export function createBoard(
     // Anticipation: slow the final reel dramatically when a big line is pending.
     if (!turbo && teaseLastReel(grid)) {
       reelSet.setAnticipation([REELS - 1], { slowdown: { from: 0.5, to: 0.12 } });
+      playSfx('anticipation');
     }
     await p;
     highlightWilds(grid);
     highlightCoins(grid);
+    if (countCoins(grid) > 0) playSfx('lightningBSymbolLanding');
   }
 
   function skip(): void {
@@ -168,6 +177,7 @@ export function createBoard(
   // --- win presentation ---
   const winFrames: AnimatedSprite[] = [];
   const wildFrames: AnimatedSprite[] = [];
+  const bursts: AnimatedSprite[] = [];
   const coinFx: Container[] = [];
   const line = new Graphics();
   overlay.addChild(line);
@@ -205,6 +215,7 @@ export function createBoard(
         wildFrames.push(anim);
       }
     }
+    if (wildFrames.length > 0) playSfx('wildAttention');
   }
 
   function clearWilds(): void {
@@ -277,6 +288,36 @@ export function createBoard(
     coinFx.length = 0;
   }
 
+  /** One-shot star-burst + coin shower on a winning symbol (additive). */
+  function playBurst(reel: number, cell: number): void {
+    const c = cellCenter(reel, cell);
+    const spawn = (textures: Texture[], size: number, speed: number): void => {
+      const a = new AnimatedSprite(textures);
+      a.anchor.set(0.5);
+      a.position.set(c.x, c.y);
+      a.width = CELL * size;
+      a.height = CELL * size;
+      a.animationSpeed = speed;
+      a.loop = false;
+      a.blendMode = 'add';
+      a.onComplete = (): void => {
+        const i = bursts.indexOf(a);
+        if (i >= 0) bursts.splice(i, 1);
+        if (!a.destroyed) a.destroy();
+      };
+      overlay.addChild(a);
+      bursts.push(a);
+      a.gotoAndPlay(0);
+    };
+    spawn(symbolBurstTextures, 1.35, 0.3);
+    spawn(symbolCoinsTextures, 1.55, 0.35);
+  }
+
+  function clearBursts(): void {
+    for (const a of bursts) if (!a.destroyed) a.destroy();
+    bursts.length = 0;
+  }
+
   function drawLine(cells: LineWin['cells']): void {
     const pts = cells.map(([reel, cell]) => cellCenter(reel, cell));
     // Extend the line past the outer symbols so it exits toward the frame edges.
@@ -314,8 +355,14 @@ export function createBoard(
         anim.play();
         overlay.addChild(anim);
         winFrames.push(anim);
+        playBurst(reel, cell); // star-burst + coin shower on the winning symbol
       }
     }
+
+    // Sound: payline sweep + a win chime scaled to the best line.
+    const best = Math.max(...wins.map((w) => w.multiplier));
+    playSfx('betline');
+    playSfx(best >= 25 ? 'winLarge' : best >= 10 ? 'winMedium' : best >= 5 ? 'winSmall' : 'winTiny');
 
     // Pop the winning symbols themselves + dim the rest (built-in spotlight).
     spotlight?.show(positions, { dimAmount: 0.35, playWinAnimation: true, promoteAboveMask: true });
@@ -351,6 +398,7 @@ export function createBoard(
     spotlight?.hide();
     for (const a of winFrames) a.destroy();
     winFrames.length = 0;
+    clearBursts();
     line.clear();
     line.alpha = 0;
   }
@@ -488,6 +536,7 @@ export function createBoard(
       }
     }
 
+    playSfx('stickySplashScreen');
     let respins = BONUS_RESPINS;
     setRespins(respins);
     await waitFrames(700);
@@ -508,6 +557,7 @@ export function createBoard(
       }
       respins = landed ? BONUS_RESPINS : respins - 1;
       setRespins(respins);
+      playSfx(landed ? 'stickyReelLanding' : 'stickyNoWin');
       await waitFrames(750);
     }
 
@@ -516,6 +566,7 @@ export function createBoard(
     for (const v of values.values()) total += coinPayout(v, bet);
     total = Math.round(total * 1e8) / 1e8;
     label.text = values.size === REELS * ROWS ? 'FULL BOARD!' : 'COLLECT';
+    playSfx('stickyEnds');
     await waitFrames(900);
     layer.destroy({ children: true });
     return total;

@@ -21,6 +21,12 @@ export interface GameAssets {
   numbers: Record<string, Texture>;
   /** Jackpot tile art shown on money symbols. */
   jackpots: Record<'mini' | 'minor' | 'major' | 'grand', Texture>;
+  /** Star-burst played on each winning symbol. */
+  symbolBurst: Texture[];
+  /** Coin shower played on each winning symbol. */
+  symbolCoins: Texture[];
+  /** Background lens-flare / glitter overlays. */
+  flares: { vfx1: Texture; vfx2: Texture; glitter: Texture[] };
 }
 
 async function tex(src: string): Promise<Texture> {
@@ -99,6 +105,17 @@ export async function loadGameAssets(): Promise<GameAssets> {
   ]);
   const jackpots = { mini, minor, major, grand };
 
+  const [burstSheet, symCoinsSheet, flareSheet, vfx1, vfx2] = await Promise.all([
+    loadSheet(`${BASE}/win/symbol/vzriv.json`),
+    loadSheet(`${BASE}/win/symbol/moneti.json`),
+    loadSheet(`${BASE}/bg/introJpeg3.json`),
+    tex(`${BASE}/bg/back-vfx1.png`),
+    tex(`${BASE}/bg/back-vfx2.png`),
+  ]);
+  const symbolBurst = burstSheet.animations['vzriv'] as Texture[];
+  const symbolCoins = symCoinsSheet.animations['moneti'] as Texture[];
+  const flares = { vfx1, vfx2, glitter: Object.values(flareSheet.textures) as Texture[] };
+
   const coins = coinsSheet.animations['win-moneti'] as Texture[];
   const bonusFrame = bonusSheet.animations['bonus-frame'] as Texture[];
   const winText = {
@@ -124,5 +141,8 @@ export async function loadGameAssets(): Promise<GameAssets> {
     winText,
     numbers,
     jackpots,
+    symbolBurst,
+    symbolCoins,
+    flares,
   };
 }

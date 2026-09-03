@@ -1,0 +1,262 @@
+[
+  {
+    "name": "keypad",
+    "src": [
+      "keypad.mp4"
+    ],
+    "sprite": {
+      "spin-stop": [
+        0,
+        1636
+      ],
+      "spin-start": [
+        3000,
+        818
+      ],
+      "fast-spin-on": [
+        5000,
+        692
+      ],
+      "fast-spin-off": [
+        7000,
+        433
+      ],
+      "disabled": [
+        9000,
+        216
+      ],
+      "click": [
+        11000,
+        173
+      ]
+    }
+  },
+  {
+    "name": "effects",
+    "src": [
+      "effects.mp4"
+    ],
+    "sprite": {
+      "wrappersPop": [
+        0,
+        3347
+      ],
+      "wrapper2": [
+        5000,
+        3633
+      ],
+      "wrapper1": [
+        10000,
+        3633
+      ],
+      "wrapper": [
+        15000,
+        3633
+      ],
+      "winTiny": [
+        20000,
+        4184
+      ],
+      "winSmall": [
+        26000,
+        5020
+      ],
+      "winMedium": [
+        33000,
+        6694
+      ],
+      "winLarge": [
+        41000,
+        6694
+      ],
+      "winAttention4": [
+        49000,
+        2092
+      ],
+      "winAttention3": [
+        53000,
+        2092
+      ],
+      "winAttention2": [
+        57000,
+        2092
+      ],
+      "winAttention1": [
+        61000,
+        2092
+      ],
+      "wildAttention": [
+        65000,
+        2510
+      ],
+      "stickySymbolsCollide": [
+        69000,
+        4602
+      ],
+      "stickySymbolTransition": [
+        75000,
+        837
+      ],
+      "stickySplashScreen": [
+        77000,
+        4219
+      ],
+      "stickyReelLanding": [
+        83000,
+        1069
+      ],
+      "stickyNoWin": [
+        86000,
+        1673
+      ],
+      "stickyEnds": [
+        89000,
+        3765
+      ],
+      "stickyAnticipation": [
+        94000,
+        2092
+      ],
+      "scatterWin": [
+        98000,
+        4184
+      ],
+      "scatterAttention": [
+        104000,
+        2929
+      ],
+      "reelsSpinBonus": [
+        108000,
+        5713
+      ],
+      "reelsSpin": [
+        115000,
+        16857
+      ],
+      "reelLanding": [
+        133000,
+        383
+      ],
+      "lightningSweep": [
+        135000,
+        2510
+      ],
+      "lightningPlusOneKeypad": [
+        139000,
+        3361
+      ],
+      "lightningPlusOne": [
+        144000,
+        4184
+      ],
+      "lightningMeterUp": [
+        150000,
+        1144
+      ],
+      "lightningMeterNewLevel": [
+        153000,
+        3765
+      ],
+      "lightningMeterLevelUp": [
+        158000,
+        3765
+      ],
+      "lightningLevelUp": [
+        163000,
+        3361
+      ],
+      "lightningIntroSplash": [
+        168000,
+        4184
+      ],
+      "lightningIntroHit2": [
+        174000,
+        4098
+      ],
+      "lightningIntroHit1": [
+        180000,
+        3690
+      ],
+      "lightningInfoPling": [
+        185000,
+        2092
+      ],
+      "lightningEnds": [
+        189000,
+        5521
+      ],
+      "lightningCountupGlitter": [
+        196000,
+        7981
+      ],
+      "lightningBSymbolLanding": [
+        205000,
+        1673
+      ],
+      "countupEnds": [
+        208000,
+        4908
+      ],
+      "countup": [
+        214000,
+        1636
+      ],
+      "bonusSweep2": [
+        217000,
+        2288
+      ],
+      "bonusSweep1": [
+        221000,
+        2746
+      ],
+      "bigwinFadeIn": [
+        225000,
+        5011
+      ],
+      "bigwinEndsHit3": [
+        232000,
+        3347
+      ],
+      "bigwinEndsHit2": [
+        237000,
+        3317
+      ],
+      "bigwinEnds3": [
+        242000,
+        6694
+      ],
+      "bigwinEnds2": [
+        250000,
+        6302
+      ],
+      "bigwinEnds1": [
+        258000,
+        5439
+      ],
+      "bigwin": [
+        265000,
+        20000
+      ],
+      "betline": [
+        287000,
+        1022
+      ],
+      "asWinBig": [
+        290000,
+        2845
+      ],
+      "asWin": [
+        294000,
+        646
+      ],
+      "anticipationFail": [
+        296000,
+        1046
+      ],
+      "anticipation": [
+        299000,
+        6694
+      ]
+    }
+  }
+]

@@ -8,6 +8,8 @@ import { loadGameAssets } from './assets';
 import { createBoard } from './reels';
 import { createWinFx, winTier } from './winfx';
 import { initAudio } from './audio';
+import { initSfx, playSfx } from './sfx';
+import { createFlares } from './flares';
 import { evaluate, BONUS_TRIGGER, COIN } from './config';
 
 const START_BALANCE = 12343.67;
@@ -35,6 +37,10 @@ async function main(): Promise<void> {
   bg.anchor.set(0.5);
   world.addChild(bg);
 
+  // Animated lens-flares / glitter drifting over the sky.
+  const flares = createFlares(assets.flares);
+  world.addChild(flares.view);
+
   const logo = new Sprite(assets.logo);
   logo.anchor.set(0.5, 0);
   world.addChild(logo);
@@ -47,6 +53,8 @@ async function main(): Promise<void> {
     assets.winFrame,
     assets.bonusFrame,
     assets.jackpots,
+    assets.symbolBurst,
+    assets.symbolCoins,
   );
   world.addChild(board.view);
 
@@ -61,8 +69,10 @@ async function main(): Promise<void> {
   ui.balance.set(START_BALANCE);
   ui.bet.set(START_BET);
 
-  // Background music (main.mp3), following the HUD's mute + music volume.
+  // Background music (main.mp3) + audio-sprite sound effects, both following the
+  // HUD's mute + volume sliders.
   initAudio(hud);
+  void initSfx(hud);
 
   const snap = (x: number): number => Math.round(x * 1e8) / 1e8;
   const turboOn = (): boolean => ui.turbo?.isOn ?? false;
@@ -82,7 +92,10 @@ async function main(): Promise<void> {
     if (wins.length > 0) {
       const framesP = board.showWins(wins);
       const tier = winTier(win / bet);
-      if (tier) await winfx.play(tier, win / bet);
+      if (tier) {
+        playSfx('bigwin');
+        await winfx.play(tier, win / bet);
+      }
       await framesP;
       ui.balance.set(snap(ui.balance.get() + win));
     }
@@ -99,6 +112,7 @@ async function main(): Promise<void> {
       bonusWin = await board.runBonus(bet, coinCells);
       if (bonusWin > 0) {
         ui.balance.set(snap(ui.balance.get() + bonusWin));
+        playSfx('bigwin');
         await winfx.play(winTier(bonusWin / bet) ?? 'big', bonusWin / bet);
       }
     }
@@ -161,6 +175,7 @@ async function main(): Promise<void> {
     const bottomReserve = h * (portrait ? 0.2 : 0.16); // HUD controls band
     board.layout(w, h, topReserve, bottomReserve);
     winfx.layout(w, h);
+    flares.layout(w, h);
   }
 
   app.renderer.on('resize', layout);

@@ -1,0 +1,45 @@
+{"frames": {
+
+"FX_Glitter":
+{
+	"frame": {"x":652,"y":808,"w":52,"h":52},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":52},
+	"sourceSize": {"w":50,"h":50}
+},
+"FX_Glitter_a":
+{
+	"frame": {"x":652,"y":660,"w":116,"h":140},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":0,"w":116,"h":140},
+	"sourceSize": {"w":114,"h":139}
+},
+"FX_Light_a":
+{
+	"frame": {"x":4,"y":4,"w":648,"h":648},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":648,"h":648},
+	"sourceSize": {"w":648,"h":648}
+},
+"FX_Light_b":
+{
+	"frame": {"x":4,"y":660,"w":640,"h":360},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":640,"h":360},
+	"sourceSize": {"w":640,"h":360}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "introJpeg3.jpg",
+	"format": "RGB888",
+	"size": {"w":772,"h":1024},
+	"scale": "1",
+	"related_multi_packs": [ "introJpeg0.json", "introJpeg1.json", "introJpeg2.json" ],
+	"smartupdate": "$TexturePacker:SmartUpdate:ecc865496cb2c7447aec9675077db2c2:877eb39187fa1b86960306ec11cb79fc:99ce458e255e5a0706a11ab39c0a285d$"
+}
+}

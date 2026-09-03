@@ -1,0 +1,125 @@
+{
+  "frames": {
+    "eff_win_particle/win_particale_000": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 480,
+        "h": 480
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 480,
+        "h": 480
+      },
+      "sourceSize": {
+        "w": 480,
+        "h": 480
+      }
+    },
+    "eff_win_particle/win_particale_001": {
+      "frame": {
+        "x": 484,
+        "y": 2,
+        "w": 480,
+        "h": 480
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 480,
+        "h": 480
+      },
+      "sourceSize": {
+        "w": 480,
+        "h": 480
+      }
+    },
+    "eff_win_particle/win_particale_002": {
+      "frame": {
+        "x": 2,
+        "y": 484,
+        "w": 480,
+        "h": 480
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 480,
+        "h": 480
+      },
+      "sourceSize": {
+        "w": 480,
+        "h": 480
+      }
+    },
+    "eff_win_particle/win_particale_003": {
+      "frame": {
+        "x": 484,
+        "y": 484,
+        "w": 480,
+        "h": 480
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 480,
+        "h": 480
+      },
+      "sourceSize": {
+        "w": 480,
+        "h": 480
+      }
+    },
+    "eff_win_particle/win_particale_004": {
+      "frame": {
+        "x": 2,
+        "y": 966,
+        "w": 480,
+        "h": 480
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 480,
+        "h": 480
+      },
+      "sourceSize": {
+        "w": 480,
+        "h": 480
+      }
+    }
+  },
+  "animations": {
+    "vzriv": [
+      "eff_win_particle/win_particale_000",
+      "eff_win_particle/win_particale_001",
+      "eff_win_particle/win_particale_002",
+      "eff_win_particle/win_particale_003",
+      "eff_win_particle/win_particale_004"
+    ]
+  },
+  "meta": {
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.0",
+    "image": "vzriv.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 1253,
+      "h": 1448
+    },
+    "scale": "1",
+    "sourceTexture": "mainJpeg3.jpg"
+  }
+}
