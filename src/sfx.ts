@@ -21,10 +21,15 @@ interface Clip {
   dur: number; // seconds
 }
 
-// Shared singleton so any module can trigger a sound without threading it through.
-let play: (name: string) => void = () => undefined;
+// Shared singletons so any module can trigger/stop a sound without threading it.
+let playImpl: (name: string) => void = () => undefined;
+let stopImpl: (name?: string) => void = () => undefined;
 export function playSfx(name: string): void {
-  play(name);
+  playImpl(name);
+}
+/** Stop a named sound, or every sound when called with no name. */
+export function stopSfx(name?: string): void {
+  stopImpl(name);
 }
 
 export async function initSfx(hud: BootedHud): Promise<void> {
@@ -32,16 +37,44 @@ export async function initSfx(hud: BootedHud): Promise<void> {
     window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
   const ctx = new Ctx();
   const gain = ctx.createGain();
-  gain.gain.value = 0.7;
   gain.connect(ctx.destination);
 
   const ui = hud.ui;
   let muted = ui.muted.get();
+  let volume = 0.7;
+  gain.gain.value = muted ? 0 : volume;
+
+  // Track live sources so we can stop them (and silence on mute).
+  const active = new Map<string, Set<AudioBufferSourceNode>>();
+  const stop = (name?: string): void => {
+    const kill = (set: Set<AudioBufferSourceNode>): void => {
+      for (const src of set) {
+        try {
+          src.stop();
+        } catch {
+          /* already stopped */
+        }
+      }
+      set.clear();
+    };
+    if (name) {
+      const set = active.get(name);
+      if (set) kill(set);
+    } else {
+      for (const set of active.values()) kill(set);
+    }
+  };
+  stopImpl = stop;
+
   ui.muted.subscribe((m) => {
     muted = m;
+    gain.gain.value = m ? 0 : volume;
+    if (m) stop(); // silence anything already playing, immediately
   });
   hud.on('valueChanged', ({ id, value }) => {
-    if (id === 'sfx') gain.gain.value = Math.max(0, Math.min(1, value));
+    if (id !== 'sfx') return;
+    volume = Math.max(0, Math.min(1, value));
+    if (!muted) gain.gain.value = volume;
   });
 
   // Autoplay policy: audio is suspended until a user gesture.
@@ -68,7 +101,7 @@ export async function initSfx(hud: BootedHud): Promise<void> {
     return; // audio failed to load — stay silent, never break the game
   }
 
-  play = (name: string): void => {
+  playImpl = (name: string): void => {
     if (muted) return;
     const clip = clips.get(name);
     if (!clip) return;
@@ -76,6 +109,12 @@ export async function initSfx(hud: BootedHud): Promise<void> {
     const src = ctx.createBufferSource();
     src.buffer = clip.buffer;
     src.connect(gain);
+    let set = active.get(name);
+    if (!set) active.set(name, (set = new Set()));
+    set.add(src);
+    src.onended = (): void => {
+      set!.delete(src);
+    };
     src.start(0, clip.start, clip.dur);
   };
 }

@@ -3,7 +3,7 @@ import type { Renderer, Ticker } from 'pixi.js';
 import { ReelSetBuilder, SpriteSymbol, SymbolSpotlight } from 'pixi-reels';
 import type { ReelSet, ColumnTarget, SymbolPosition } from 'pixi-reels';
 import { gsap } from 'gsap';
-import { playSfx } from './sfx';
+import { playSfx, stopSfx } from './sfx';
 import {
   BLOCK_H,
   BLOCK_W,
@@ -149,6 +149,7 @@ export function createBoard(
     clearWins();
     clearWilds();
     clearCoins();
+    stopSfx(); // clear any lingering long sound (spin/anticipation/bigwin) from before
     playSfx('spin-start');
     playSfx('reelsSpin');
     const p = reelSet.spin();
@@ -161,6 +162,8 @@ export function createBoard(
       playSfx('anticipation');
     }
     await p;
+    stopSfx('reelsSpin'); // the long spin loop ends the moment the reels land
+    stopSfx('anticipation');
     highlightWilds(grid);
     highlightCoins(grid);
     if (countCoins(grid) > 0) playSfx('lightningBSymbolLanding');
