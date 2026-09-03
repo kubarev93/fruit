@@ -21,6 +21,7 @@ export type SymbolId = keyof typeof SYMBOL_FILES;
 
 export const WILD: SymbolId = 'wild';
 export const COIN: SymbolId = 'coin';
+export const COCONUT: SymbolId = 'coconut';
 
 /** The paying symbols (everything except the wild), high value first. */
 export const PAYING: SymbolId[] = [
@@ -66,9 +67,11 @@ export const PAYOUTS: Record<SymbolId, number> = {
   coin: 0,
 };
 
+export type JackpotId = 'mini' | 'minor' | 'major' | 'grand';
+
 /** Jackpot tiers a money symbol can carry, weighted (mini common → grand rare). */
 export interface Jackpot {
-  id: 'mini' | 'minor' | 'major' | 'grand';
+  id: JackpotId;
   weight: number;
 }
 export const JACKPOTS: Jackpot[] = [
@@ -192,4 +195,26 @@ export function winTier(multiplier: number): WinTier | null {
   if (multiplier >= 25) return 'mega';
   if (multiplier >= 10) return 'big';
   return null;
+}
+
+const WEIGHTED_SYMBOLS: string[] = (() => {
+  const pool: string[] = [];
+  for (const id of Object.keys(SYMBOL_FILES)) {
+    for (let i = 0; i < (WEIGHTS[id] ?? 1); i++) pool.push(id);
+  }
+  return pool;
+})();
+
+export function randomSymbol(): string {
+  return WEIGHTED_SYMBOLS[(Math.random() * WEIGHTED_SYMBOLS.length) | 0]!;
+}
+
+export function randomGrid(): string[][] {
+  return Array.from({ length: REELS }, () => Array.from({ length: ROWS }, () => randomSymbol()));
+}
+
+export function countCoins(grid: string[][]): number {
+  let n = 0;
+  for (const col of grid) for (const s of col) if (s === COIN) n++;
+  return n;
 }

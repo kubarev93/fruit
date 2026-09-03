@@ -4,57 +4,42 @@ import { ReelSetBuilder, SpriteSymbol, SymbolSpotlight } from 'pixi-reels';
 import type { ReelSet, ColumnTarget, SymbolPosition } from 'pixi-reels';
 import { gsap } from 'gsap';
 import { CoinSymbol } from './CoinSymbol';
+import { CoconutSymbol } from './CoconutSymbol';
 import { playSfx, stopSfx } from './sfx';
 import {
   BLOCK_H,
   BLOCK_W,
   BONUS_RESPINS,
   CELL,
+  COCONUT,
   COIN,
-  COIN_LAND_CHANCE,
-  COIN_VALUES,
   FRAME_COL_PITCH_FRAC,
   FRAME_ROW_SPAN_FRAC,
   GAP_X,
   GAP_Y,
-  JACKPOT_VALUES,
-  JACKPOTS,
   PAYLINES,
   PAYOUTS,
   REELS,
   ROWS,
   WEIGHTS,
   WILD,
+  countCoins,
+  type JackpotId,
   type LineWin,
   type SymbolId,
 } from './config';
+import type { BonusResult, CoinValue } from './rgs/types';
 
-type JackpotId = 'mini' | 'minor' | 'major' | 'grand';
-
-/** A pending line is worth teasing the last reel for if it could pay this much. */
 const TEASE_MIN_PAYOUT = 14;
 
-
 export interface Board {
-  /** The whole board (wooden frame + reels + win overlay), scaled to fit. */
   readonly view: Container;
-  /** Start a spin, land on `grid` ([reel][cell]), resolve when settled. */
   spin(grid: string[][], turbo: boolean): Promise<void>;
-  /** Land the in-flight spin immediately. */
   skip(): void;
-  /** Highlight winning lines: gold frames on winners + an animated payline. */
   showWins(wins: LineWin[]): Promise<void>;
-  /** Clear any win highlight. */
   clearWins(): void;
-  /** Re-fit the board into the given screen rect. */
   layout(width: number, height: number, top: number, bottom: number): void;
-  /** A ready weighted random grid for demo/idle spins. */
-  randomGrid(): string[][];
-  /** Count the money symbols on a grid. */
-  countCoins(grid: string[][]): number;
-  /** Run the Hold & Win respin round from the triggering coins; resolves with
-   *  the total win (× bet already applied). */
-  runBonus(bet: number, coinCells: Array<{ reel: number; cell: number }>): Promise<number>;
+  runBonus(bonus: BonusResult): Promise<void>;
 }
 
 export function createBoard(
@@ -86,6 +71,8 @@ export function createBoard(
       for (const [id, tex] of Object.entries(symbolTextures)) {
         if (id === COIN) {
           r.register(id, CoinSymbol, { tile: tex, jackpots: jackpotTextures });
+        } else if (id === COCONUT) {
+          r.register(id, CoconutSymbol, { texture: tex });
         } else {
           r.register(id, SpriteSymbol, { textures: { [id]: tex } });
         }
@@ -118,17 +105,6 @@ export function createBoard(
   }
 
   reelSet.events.on('spin:reelLanded', () => playSfx('reelLanding'));
-
-  const symbolIds = Object.keys(symbolTextures) as SymbolId[];
-  const weighted: SymbolId[] = [];
-  for (const id of symbolIds) for (let i = 0; i < (WEIGHTS[id] ?? 1); i++) weighted.push(id);
-  const randomSymbol = (): SymbolId => weighted[(Math.random() * weighted.length) | 0]!;
-
-  function randomGrid(): string[][] {
-    return Array.from({ length: REELS }, () =>
-      Array.from({ length: ROWS }, () => randomSymbol() as string),
-    );
-  }
 
   function toTargets(grid: string[][]): ColumnTarget[] {
     return grid.map((visible) => ({ visible }));
@@ -229,16 +205,6 @@ export function createBoard(
   function clearWilds(): void {
     for (const a of wildFrames) a.destroy();
     wildFrames.length = 0;
-  }
-
-  function pick<T>(items: readonly T[]): T {
-    return items[(Math.random() * items.length) | 0]!;
-  }
-  function pickJackpot(): JackpotId {
-    const total = JACKPOTS.reduce((sum, j) => sum + j.weight, 0);
-    let r = Math.random() * total;
-    for (const j of JACKPOTS) if ((r -= j.weight) < 0) return j.id;
-    return 'mini';
   }
 
   function highlightCoins(grid: string[][]): void {
@@ -400,21 +366,9 @@ export function createBoard(
   }
 
   const coinTile = symbolTextures[COIN];
-  type CoinVal = { kind: 'cash'; v: number } | { kind: 'jp'; id: JackpotId };
   const cKey = (r: number, c: number): string => `${r}:${c}`;
-  const genCoinValue = (): CoinVal =>
-    Math.random() < 0.28 ? { kind: 'jp', id: pickJackpot() } : { kind: 'cash', v: pick(COIN_VALUES) };
-  const coinPayout = (v: CoinVal, bet: number): number =>
-    v.kind === 'cash' ? v.v * bet : JACKPOT_VALUES[v.id] * bet;
 
-  function countCoins(grid: string[][]): number {
-    let n = 0;
-    for (const col of grid) for (const s of col) if (s === COIN) n++;
-    return n;
-  }
-
-  /** Build one bonus cell: gold tile + value (cash text / jackpot) + glow. */
-  function bonusCell(reel: number, cell: number, val: CoinVal | null): Container {
+  function bonusCell(reel: number, cell: number, val: CoinValue | null): Container {
     const c = cellCenter(reel, cell);
     const cont = new Container();
     cont.position.set(c.x, c.y);
@@ -425,7 +379,7 @@ export function createBoard(
     tile.alpha = val ? 1 : 0.18;
     cont.addChild(tile);
     if (val) {
-      if (val.kind === 'jp') {
+      if (val.kind === 'jackpot') {
         const jp = new Sprite(jackpotTextures[val.id]);
         jp.anchor.set(0.5);
         jp.width = CELL * 0.92;
@@ -433,13 +387,13 @@ export function createBoard(
         cont.addChild(jp);
       } else {
         const t = new Text({
-          text: `${val.v}`,
+          text: `${val.amount}`,
           style: {
             fontFamily: 'Arial Black, Arial, sans-serif',
             fontSize: CELL * 0.34,
             fontWeight: '900',
-            fill: '#ffe14d',
-            stroke: { color: '#5a3a00', width: CELL * 0.03, join: 'round' },
+            fill: '#ffffff',
+            stroke: { color: '#7a3d00', width: CELL * 0.045, join: 'round' },
           },
         });
         t.anchor.set(0.5);
@@ -458,10 +412,7 @@ export function createBoard(
     return cont;
   }
 
-  async function runBonus(
-    bet: number,
-    coinCells: Array<{ reel: number; cell: number }>,
-  ): Promise<number> {
+  async function runBonus(bonus: BonusResult): Promise<void> {
     clearWins();
     clearWilds();
     clearCoins();
@@ -478,16 +429,15 @@ export function createBoard(
     boardLayer.y = -BLOCK_H / 2;
     layer.addChild(boardLayer);
 
-    const values = new Map<string, CoinVal>();
     const conts = new Map<string, Container>();
-    const setCell = (reel: number, cell: number, val: CoinVal | null): void => {
+    const setCell = (reel: number, cell: number, val: CoinValue | null): Container => {
       conts.get(cKey(reel, cell))?.destroy({ children: true });
       const cont = bonusCell(reel, cell, val);
       boardLayer.addChild(cont);
       conts.set(cKey(reel, cell), cont);
+      return cont;
     };
 
-    // Respins counter.
     const label = new Text({
       text: '',
       style: {
@@ -505,50 +455,32 @@ export function createBoard(
       label.text = `RESPINS  ${n}`;
     };
 
-    // Seed: held coins get values, the rest start empty.
+    const seeded = new Map<string, CoinValue>();
+    for (const coin of bonus.seed) seeded.set(cKey(coin.reel, coin.cell), coin.value);
     for (let reel = 0; reel < REELS; reel++) {
       for (let cell = 0; cell < ROWS; cell++) {
-        const held = coinCells.some((cc) => cc.reel === reel && cc.cell === cell);
-        const val = held ? genCoinValue() : null;
-        if (val) values.set(cKey(reel, cell), val);
-        setCell(reel, cell, val);
+        setCell(reel, cell, seeded.get(cKey(reel, cell)) ?? null);
       }
     }
 
     playSfx('stickySplashScreen');
-    let respins = BONUS_RESPINS;
-    setRespins(respins);
+    setRespins(BONUS_RESPINS);
     await waitFrames(700);
 
-    while (respins > 0 && values.size < REELS * ROWS) {
-      let landed = false;
-      for (let reel = 0; reel < REELS; reel++) {
-        for (let cell = 0; cell < ROWS; cell++) {
-          if (values.has(cKey(reel, cell))) continue;
-          if (Math.random() >= COIN_LAND_CHANCE) continue;
-          const val = genCoinValue();
-          values.set(cKey(reel, cell), val);
-          setCell(reel, cell, val);
-          const cont = conts.get(cKey(reel, cell))!;
-          gsap.from(cont.scale, { x: 0, y: 0, duration: 0.32, ease: 'back.out(2)' });
-          landed = true;
-        }
+    for (const step of bonus.respins) {
+      for (const land of step.lands) {
+        const cont = setCell(land.reel, land.cell, land.value);
+        gsap.from(cont.scale, { x: 0, y: 0, duration: 0.32, ease: 'back.out(2)' });
       }
-      respins = landed ? BONUS_RESPINS : respins - 1;
-      setRespins(respins);
-      playSfx(landed ? 'stickyReelLanding' : 'stickyNoWin');
+      setRespins(step.respinsLeft);
+      playSfx(step.lands.length > 0 ? 'stickyReelLanding' : 'stickyNoWin');
       await waitFrames(750);
     }
 
-    // Collect.
-    let total = 0;
-    for (const v of values.values()) total += coinPayout(v, bet);
-    total = Math.round(total * 1e8) / 1e8;
-    label.text = values.size === REELS * ROWS ? 'FULL BOARD!' : 'COLLECT';
+    label.text = bonus.fullBoard ? 'FULL BOARD!' : 'COLLECT';
     playSfx('stickyEnds');
     await waitFrames(900);
     layer.destroy({ children: true });
-    return total;
   }
 
   function layout(width: number, height: number, top: number, bottom: number): void {
@@ -569,7 +501,7 @@ export function createBoard(
     view.y = top + availH / 2;
   }
 
-  return { view, spin, skip, showWins, clearWins, layout, randomGrid, countCoins, runBonus };
+  return { view, spin, skip, showWins, clearWins, layout, runBonus };
 }
 
 function wait(ms: number): Promise<void> {

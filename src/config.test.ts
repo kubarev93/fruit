@@ -12,6 +12,7 @@ import {
   SYMBOL_FILES,
   WILD,
   COIN,
+  COCONUT,
   REELS,
   ROWS,
 } from './config';
@@ -166,5 +167,13 @@ describe('config invariants', () => {
   it('has only positive coin values', () => {
     expect(COIN_VALUES.length).toBeGreaterThan(0);
     for (const v of COIN_VALUES) expect(v).toBeGreaterThan(0);
+  });
+
+  it('exposes the coconut symbol used by the animated CoconutSymbol renderer', () => {
+    expect(COCONUT).toBe('coconut');
+    expect(SYMBOL_FILES[COCONUT]).toBeDefined();
+    expect(PAYING).toContain(COCONUT);
+    expect(COCONUT).not.toBe(COIN);
+    expect(COCONUT).not.toBe(WILD);
   });
 });

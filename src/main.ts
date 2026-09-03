@@ -10,7 +10,9 @@ import { createWinFx } from './winfx';
 import { initAudio, duckMusic } from './audio';
 import { initSfx, playSfx, stopSfx } from './sfx';
 import { createFlares } from './flares';
-import { evaluate, winTier, BONUS_TRIGGER, COIN } from './config';
+import { createRgs } from './rgs';
+import type { AuthResult } from './rgs';
+import { winTier } from './config';
 
 const START_BALANCE = 12343.67;
 const BET_LADDER = [0.2, 0.4, 0.6, 0.8, 1, 2, 3, 5, 10, 20, 50];
@@ -62,12 +64,20 @@ async function main(): Promise<void> {
   const winfx = createWinFx(assets);
   world.addChild(winfx.view);
 
+  const rgs = createRgs({
+    balance: START_BALANCE,
+    currency: 'USD',
+    betLadder: BET_LADDER,
+    defaultBet: START_BET,
+  });
+  const auth = await rgs.authenticate();
+
   // ---- HUD (spin button, balance, bet, autoplay, menu) in one call ----
   const { icons, spinSkin } = await loadBuiltinArt();
-  const hud = mountHud(app, buildSpec(), { icons, spinSkin, gsap, expose: true });
+  const hud = mountHud(app, buildSpec(auth), { icons, spinSkin, gsap, expose: true });
   const ui = hud.ui;
-  ui.balance.set(START_BALANCE);
-  ui.bet.set(START_BET);
+  ui.balance.set(auth.balance);
+  ui.bet.set(auth.defaultBet);
 
   // Background music (main.mp3) + audio-sprite sound effects, both following the
   // HUD's mute + volume sliders.
@@ -77,53 +87,40 @@ async function main(): Promise<void> {
   const snap = (x: number): number => Math.round(x * 1e8) / 1e8;
   const turboOn = (): boolean => ui.turbo?.isOn ?? false;
 
-  // ---- one round (optionally forced to a specific grid, for the mock panel) ----
+  async function bigWinSplash(win: number, bet: number): Promise<void> {
+    const tier = winTier(win / bet);
+    if (!tier) return;
+    duckMusic(true);
+    playSfx('bigwin');
+    await winfx.play(tier, win / bet);
+    stopSfx('bigwin');
+    duckMusic(false);
+  }
+
   async function playSpin(forced?: string[][]): Promise<void> {
     const bet = ui.bet.get();
     ui.spin.busy();
     board.clearWins();
+
+    const round =
+      forced && rgs.playForced ? await rgs.playForced(forced, bet) : await rgs.play(bet);
     ui.balance.set(snap(ui.balance.get() - bet));
 
-    const grid = forced ?? board.randomGrid();
-    await board.spin(grid, turboOn());
+    await board.spin(round.grid, turboOn());
 
-    const wins = evaluate(grid);
-    const win = snap(wins.reduce((sum, w) => sum + w.multiplier * bet, 0));
-    if (wins.length > 0) {
-      const framesP = board.showWins(wins);
-      const tier = winTier(win / bet);
-      if (tier) {
-        duckMusic(true);
-        playSfx('bigwin');
-        await winfx.play(tier, win / bet);
-        stopSfx('bigwin');
-        duckMusic(false);
-      }
+    if (round.wins.length > 0) {
+      const framesP = board.showWins(round.wins);
+      await bigWinSplash(round.win, bet);
       await framesP;
-      ui.balance.set(snap(ui.balance.get() + win));
     }
 
-    // Hold & Win: enough money symbols on the grid triggers the respin bonus.
-    let bonusWin = 0;
-    if (board.countCoins(grid) >= BONUS_TRIGGER) {
-      const coinCells: Array<{ reel: number; cell: number }> = [];
-      grid.forEach((col, reel) =>
-        col.forEach((s, cell) => {
-          if (s === COIN) coinCells.push({ reel, cell });
-        }),
-      );
-      bonusWin = await board.runBonus(bet, coinCells);
-      if (bonusWin > 0) {
-        ui.balance.set(snap(ui.balance.get() + bonusWin));
-        duckMusic(true);
-        playSfx('bigwin');
-        await winfx.play(winTier(bonusWin / bet) ?? 'big', bonusWin / bet);
-        stopSfx('bigwin');
-        duckMusic(false);
-      }
+    if (round.bonus) {
+      await board.runBonus(round.bonus);
+      await bigWinSplash(round.bonus.win, bet);
     }
 
-    ui.reportRound(snap(win + bonusWin), bet);
+    ui.balance.set(round.balance);
+    ui.reportRound(snap(round.win + (round.bonus?.win ?? 0)), bet);
   }
 
   let rounding = false;
@@ -214,12 +211,11 @@ async function main(): Promise<void> {
   }
 }
 
-/** The whole HUD as one config object. */
-function buildSpec(): UISpec {
+function buildSpec(auth: AuthResult): UISpec {
   return {
     theme: { preset: 'default' },
-    currency: { code: 'USD', symbol: '$', display: 'symbol', position: 'prefix', decimals: 2 },
-    betLadder: resolveBetLadder(BET_LADDER, START_BET),
+    currency: { code: auth.currency, symbol: '$', display: 'symbol', position: 'prefix', decimals: 2 },
+    betLadder: resolveBetLadder(auth.betLadder, auth.defaultBet),
     turbo: { modes: 2 },
     autoplay: { mode: 'options', options: [5, 10, 25, 50, 100, Infinity] },
     spin: { press: 'tap' },

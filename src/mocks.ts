@@ -61,6 +61,10 @@ const GROUPS: Group[] = [
         run: (a) => a.round(grid(['heart', 'heart', 'heart'], ['heart', 'heart', 'heart'], ['heart', 'heart', 'heart'])),
       },
       {
+        label: 'Кокосы — раскол скорлупы',
+        run: (a) => a.round(grid(['coconut', 'coconut', 'coconut'], ['coconut', 'coconut', 'coconut'], ['coconut', 'coconut', 'coconut'])),
+      },
+      {
         label: 'Anticipation (промах)',
         run: (a) => a.round(grid(['heart', 'spade', 'clover'], ['heart', 'diamond', 'pear'], ['spade', 'grapes', 'coconut'])),
       },
