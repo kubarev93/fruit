@@ -10,15 +10,16 @@ export interface Flares {
 export function createFlares(assets: { vfx1: Texture; vfx2: Texture; glitter: Texture[] }): Flares {
   const view = new Container();
   view.eventMode = 'none';
-  view.alpha = 0.55; // keep it subtle
+  view.alpha = 0.4; // subtle — a gentle enhancement, not a spotlight
 
-  // A big lens flare near the sun.
+  // A soft light glow near the sun (kept faint; the twinkles carry the effect).
   const flare = new Sprite(assets.vfx1);
   flare.anchor.set(0.5);
   flare.blendMode = 'add';
+  flare.alpha = 0.35;
   view.addChild(flare);
-  gsap.to(flare, { alpha: 0.8, duration: 3.6, yoyo: true, repeat: -1, ease: 'sine.inOut' });
-  gsap.to(flare.scale, { x: 1.07, y: 1.07, duration: 4.8, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+  gsap.to(flare, { alpha: 0.5, duration: 4.2, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+  gsap.to(flare.scale, { x: 1.06, y: 1.06, duration: 5.2, yoyo: true, repeat: -1, ease: 'sine.inOut' });
 
   // Glitter twinkles scattered across the upper sky. [x%, y%, size-factor]
   const spots: Array<[number, number, number]> = [
