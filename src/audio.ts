@@ -2,6 +2,14 @@ import type { BootedHud } from '@open-slot-ui/pixi';
 
 const BASE = 'assets';
 const DEFAULT_VOLUME = 0.5;
+const DUCK_FACTOR = 0.18; // how far to lower the music under a win jingle
+
+// Shared singleton so the game can duck the music under big-win jingles.
+let duckImpl: (ducked: boolean) => void = () => undefined;
+/** Temporarily lower the background music (e.g. while a big-win jingle plays). */
+export function duckMusic(ducked: boolean): void {
+  duckImpl(ducked);
+}
 
 /**
  * Background music (`main.mp3`), wired to the HUD's sound controls.
@@ -14,10 +22,15 @@ export function initAudio(hud: BootedHud): void {
   const music = new Audio(`${BASE}/main.mp3`);
   music.loop = true;
   music.preload = 'auto';
-  music.volume = DEFAULT_VOLUME;
 
   const ui = hud.ui;
   let unlocked = false;
+  let baseVolume = DEFAULT_VOLUME;
+  let ducked = false;
+  const applyVolume = (): void => {
+    music.volume = baseVolume * (ducked ? DUCK_FACTOR : 1);
+  };
+  applyVolume();
 
   const apply = (): void => {
     music.muted = ui.muted.get();
@@ -41,7 +54,13 @@ export function initAudio(hud: BootedHud): void {
   // Music volume slider (0..1).
   hud.on('valueChanged', ({ id, value }) => {
     if (id !== 'music') return;
-    music.volume = Math.max(0, Math.min(1, value));
+    baseVolume = Math.max(0, Math.min(1, value));
+    applyVolume();
     apply();
   });
+
+  duckImpl = (d: boolean): void => {
+    ducked = d;
+    applyVolume();
+  };
 }

@@ -7,8 +7,8 @@ import { gsap } from 'gsap';
 import { loadGameAssets } from './assets';
 import { createBoard } from './reels';
 import { createWinFx, winTier } from './winfx';
-import { initAudio } from './audio';
-import { initSfx, playSfx } from './sfx';
+import { initAudio, duckMusic } from './audio';
+import { initSfx, playSfx, stopSfx } from './sfx';
 import { createFlares } from './flares';
 import { evaluate, BONUS_TRIGGER, COIN } from './config';
 
@@ -93,8 +93,11 @@ async function main(): Promise<void> {
       const framesP = board.showWins(wins);
       const tier = winTier(win / bet);
       if (tier) {
+        duckMusic(true);
         playSfx('bigwin');
         await winfx.play(tier, win / bet);
+        stopSfx('bigwin');
+        duckMusic(false);
       }
       await framesP;
       ui.balance.set(snap(ui.balance.get() + win));
@@ -112,8 +115,11 @@ async function main(): Promise<void> {
       bonusWin = await board.runBonus(bet, coinCells);
       if (bonusWin > 0) {
         ui.balance.set(snap(ui.balance.get() + bonusWin));
+        duckMusic(true);
         playSfx('bigwin');
         await winfx.play(winTier(bonusWin / bet) ?? 'big', bonusWin / bet);
+        stopSfx('bigwin');
+        duckMusic(false);
       }
     }
 
