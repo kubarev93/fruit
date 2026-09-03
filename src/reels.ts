@@ -3,6 +3,7 @@ import type { Renderer, Ticker } from 'pixi.js';
 import { ReelSetBuilder, SpriteSymbol, SymbolSpotlight } from 'pixi-reels';
 import type { ReelSet, ColumnTarget, SymbolPosition } from 'pixi-reels';
 import { gsap } from 'gsap';
+import { CoinSymbol } from './CoinSymbol';
 import { playSfx, stopSfx } from './sfx';
 import {
   BLOCK_H,
@@ -83,7 +84,11 @@ export function createBoard(
     .renderer(renderer)
     .symbols((r) => {
       for (const [id, tex] of Object.entries(symbolTextures)) {
-        r.register(id, SpriteSymbol, { textures: { [id]: tex } });
+        if (id === COIN) {
+          r.register(id, CoinSymbol, { tile: tex, jackpots: jackpotTextures });
+        } else {
+          r.register(id, SpriteSymbol, { textures: { [id]: tex } });
+        }
       }
     })
     .weights(WEIGHTS)
@@ -236,52 +241,23 @@ export function createBoard(
     return 'mini';
   }
 
-  /** Give every landed money symbol its glow + a random value (cash or jackpot). */
   function highlightCoins(grid: string[][]): void {
     clearCoins();
     for (let reel = 0; reel < grid.length; reel++) {
       for (let cell = 0; cell < grid[reel]!.length; cell++) {
         if (grid[reel]![cell] !== COIN) continue;
         const c = cellCenter(reel, cell);
-        const group = new Container();
-        group.position.set(c.x, c.y);
-
-        // ~28% of coins carry a jackpot tier; the rest carry a cash value.
-        if (Math.random() < 0.28) {
-          const jp = new Sprite(jackpotTextures[pickJackpot()]);
-          jp.anchor.set(0.5);
-          jp.width = CELL * 0.92;
-          jp.height = CELL * 0.92;
-          group.addChild(jp);
-        } else {
-          const value = new Text({
-            text: `${pick(COIN_VALUES)}`,
-            style: {
-              fontFamily: 'Arial Black, Arial, sans-serif',
-              fontSize: CELL * 0.34,
-              fontWeight: '900',
-              fill: '#ffe14d',
-              stroke: { color: '#5a3a00', width: CELL * 0.03, join: 'round' },
-              dropShadow: { color: '#000000', alpha: 0.35, blur: 6, distance: 6, angle: Math.PI / 2 },
-            },
-          });
-          value.anchor.set(0.5);
-          group.addChild(value);
-        }
-
-        // Golden glow frame (same as Wilds), additive so its dark fill drops out.
         const glow = new AnimatedSprite(bonusFrameTextures);
         glow.anchor.set(0.5);
+        glow.position.set(c.x, c.y);
         glow.width = CELL * 1.14;
         glow.height = CELL * 1.14;
         glow.animationSpeed = 0.4;
         glow.loop = true;
         glow.blendMode = 'add';
         glow.play();
-        group.addChild(glow);
-
-        overlay.addChild(group);
-        coinFx.push(group);
+        overlay.addChild(glow);
+        coinFx.push(glow);
       }
     }
   }
