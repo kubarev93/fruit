@@ -9,6 +9,14 @@
 export const COIN_TILE_FILL = 1.22;
 
 /**
+ * How much of a cell a jackpot tile (mini/minor/major/grand) fills. Unlike the
+ * `z.png` coin art, the jackpot art already fills its whole canvas, so it must
+ * NOT use {@link COIN_TILE_FILL} (that would blow it up past the cell). Keep it
+ * at the tile art's own footprint.
+ */
+export const COIN_JACKPOT_FILL = 0.92;
+
+/**
  * The flat inner panel of the gold box (inside the bevel), as a fraction of
  * the drawn tile — the area the value text must stay within. Kept a touch
  * tighter than the measured panel (~0.48×0.50) for breathing room.

@@ -1,7 +1,7 @@
 import { Container, Sprite, Text, Texture } from 'pixi.js';
 import { ReelSymbol } from 'pixi-reels';
 import { COIN_VALUES, JACKPOTS } from './config';
-import { COIN_TILE_FILL, COIN_TEXT_BOX_W, COIN_TEXT_BOX_H, fitScale } from './coinFit';
+import { COIN_TILE_FILL, COIN_JACKPOT_FILL, COIN_TEXT_BOX_W, COIN_TEXT_BOX_H, fitScale } from './coinFit';
 
 type JackpotId = 'mini' | 'minor' | 'major' | 'grand';
 
@@ -96,11 +96,13 @@ export class CoinSymbol extends ReelSymbol {
     this.tile.position.set(cx, cy);
     this.tile.width = tileW;
     this.tile.height = tileH;
+    const jackW = this.w * COIN_JACKPOT_FILL;
+    const jackH = this.h * COIN_JACKPOT_FILL;
     for (const id of JACKPOT_IDS) {
       const s = this.jackpotSprites[id];
       s.position.set(cx, cy);
-      s.width = tileW;
-      s.height = tileH;
+      s.width = jackW;
+      s.height = jackH;
     }
     this.cashText.position.set(cx, cy);
     this.fitCashText(tileW, tileH);

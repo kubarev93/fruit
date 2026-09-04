@@ -4,7 +4,7 @@ import { ReelSetBuilder, SpriteSymbol, SymbolSpotlight } from 'pixi-reels';
 import type { ReelSet, ColumnTarget, SymbolPosition } from 'pixi-reels';
 import { gsap } from 'gsap';
 import { CoinSymbol } from './CoinSymbol';
-import { COIN_TILE_FILL, COIN_TEXT_BOX_W, COIN_TEXT_BOX_H, fitScale } from './coinFit';
+import { COIN_TILE_FILL, COIN_JACKPOT_FILL, COIN_TEXT_BOX_W, COIN_TEXT_BOX_H, fitScale } from './coinFit';
 import { CoconutSymbol } from './CoconutSymbol';
 import { playSfx, stopSfx } from './sfx';
 import {
@@ -412,8 +412,8 @@ export function createBoard(
       if (val.kind === 'jackpot') {
         const jp = new Sprite(jackpotTextures[val.id]);
         jp.anchor.set(0.5);
-        jp.width = tileSize;
-        jp.height = tileSize;
+        jp.width = CELL * COIN_JACKPOT_FILL;
+        jp.height = CELL * COIN_JACKPOT_FILL;
         cont.addChild(jp);
       } else {
         const t = new Text({
