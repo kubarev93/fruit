@@ -4,6 +4,7 @@ import { ReelSetBuilder, SpriteSymbol, SymbolSpotlight } from 'pixi-reels';
 import type { ReelSet, ColumnTarget, SymbolPosition } from 'pixi-reels';
 import { gsap } from 'gsap';
 import { CoinSymbol } from './CoinSymbol';
+import { COIN_TILE_FILL, COIN_TEXT_BOX_W, COIN_TEXT_BOX_H, fitScale } from './coinFit';
 import { CoconutSymbol } from './CoconutSymbol';
 import { playSfx, stopSfx } from './sfx';
 import {
@@ -372,31 +373,33 @@ export function createBoard(
     const c = cellCenter(reel, cell);
     const cont = new Container();
     cont.position.set(c.x, c.y);
+    const tileSize = CELL * COIN_TILE_FILL;
     const tile = new Sprite(coinTile);
     tile.anchor.set(0.5);
-    tile.width = CELL * 0.92;
-    tile.height = CELL * 0.92;
+    tile.width = tileSize;
+    tile.height = tileSize;
     tile.alpha = val ? 1 : 0.18;
     cont.addChild(tile);
     if (val) {
       if (val.kind === 'jackpot') {
         const jp = new Sprite(jackpotTextures[val.id]);
         jp.anchor.set(0.5);
-        jp.width = CELL * 0.92;
-        jp.height = CELL * 0.92;
+        jp.width = tileSize;
+        jp.height = tileSize;
         cont.addChild(jp);
       } else {
         const t = new Text({
           text: `${val.amount}`,
           style: {
             fontFamily: 'Arial Black, Arial, sans-serif',
-            fontSize: CELL * 0.34,
+            fontSize: CELL * 0.5,
             fontWeight: '900',
             fill: '#ffffff',
             stroke: { color: '#7a3d00', width: CELL * 0.045, join: 'round' },
           },
         });
         t.anchor.set(0.5);
+        t.scale.set(fitScale(t.width, t.height, tileSize * COIN_TEXT_BOX_W, tileSize * COIN_TEXT_BOX_H));
         cont.addChild(t);
       }
       const glow = new AnimatedSprite(bonusFrameTextures);
