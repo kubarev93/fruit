@@ -3,12 +3,7 @@ import type { Ticker } from 'pixi.js';
 import { gsap } from 'gsap';
 import type { GameAssets } from './assets';
 import type { WinTier } from './config';
-import {
-  BIGWIN_NATIVE_W,
-  createBigWinSpine,
-  loadBigWinAssets,
-  type BigWinSpine,
-} from './bigWinSpine';
+import { createBigWinSpine, loadBigWinAssets, type BigWinSpine } from './bigWinSpine';
 
 export interface WinFx {
   readonly view: Container;
@@ -19,6 +14,10 @@ export interface WinFx {
 
 const GLYPH_H = 150;
 const HOLD_MS = 1100;
+const BIGWIN_SCALE = 0.5;
+const BIGWIN_ART_CENTER_Y = 133.85;
+const BIGWIN_HOLDER_Y = 637.2;
+const BIGWIN_Y_SHIFT = -70;
 
 export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
   const view = new Container();
@@ -99,10 +98,15 @@ export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
     text.height = text.width * (text.texture.height / text.texture.width);
 
     if (spine) {
-      spine.view.scale.set(940 / BIGWIN_NATIVE_W);
-      spine.view.position.set(0, -30);
+      const s = BIGWIN_SCALE;
+      spine.view.scale.set(s);
+      spine.view.position.set(0, -BIGWIN_ART_CENTER_Y * s + BIGWIN_Y_SHIFT);
+      counter.scale.set(0.72);
+      counter.position.set(0, (BIGWIN_HOLDER_Y - BIGWIN_ART_CENTER_Y) * s + BIGWIN_Y_SHIFT);
+    } else {
+      counter.scale.set(1);
+      counter.position.set(0, 150);
     }
-    counter.position.set(0, 150);
   }
 
   function reset(): void {
