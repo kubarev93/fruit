@@ -23,13 +23,17 @@ interface Clip {
 
 // Shared singletons so any module can trigger/stop a sound without threading it.
 let playImpl: (name: string) => void = () => undefined;
-let stopImpl: (name?: string) => void = () => undefined;
+let stopImpl: (name?: string, fadeMs?: number) => void = () => undefined;
 export function playSfx(name: string): void {
   playImpl(name);
 }
-/** Stop a named sound, or every sound when called with no name. */
-export function stopSfx(name?: string): void {
-  stopImpl(name);
+/**
+ * Stop a named sound, or every sound when called with no name. `fadeMs` ramps
+ * the voice(s) down over that many milliseconds instead of cutting instantly —
+ * use it to end a sustained loop (e.g. the reel spin) without a click.
+ */
+export function stopSfx(name?: string, fadeMs?: number): void {
+  stopImpl(name, fadeMs);
 }
 
 export async function initSfx(hud: BootedHud): Promise<void> {
@@ -44,13 +48,25 @@ export async function initSfx(hud: BootedHud): Promise<void> {
   let volume = 0.7;
   gain.gain.value = muted ? 0 : volume;
 
-  // Track live sources so we can stop them (and silence on mute).
-  const active = new Map<string, Set<AudioBufferSourceNode>>();
-  const stop = (name?: string): void => {
-    const kill = (set: Set<AudioBufferSourceNode>): void => {
-      for (const src of set) {
+  // Track live voices (source + its own gain) so we can stop or fade them.
+  interface Voice {
+    src: AudioBufferSourceNode;
+    g: GainNode;
+  }
+  const active = new Map<string, Set<Voice>>();
+  const stop = (name?: string, fadeMs?: number): void => {
+    const kill = (set: Set<Voice>): void => {
+      for (const v of set) {
         try {
-          src.stop();
+          if (fadeMs && fadeMs > 0) {
+            const now = ctx.currentTime;
+            v.g.gain.cancelScheduledValues(now);
+            v.g.gain.setValueAtTime(v.g.gain.value, now);
+            v.g.gain.linearRampToValueAtTime(0, now + fadeMs / 1000);
+            v.src.stop(now + fadeMs / 1000);
+          } else {
+            v.src.stop();
+          }
         } catch {
           /* already stopped */
         }
@@ -108,12 +124,17 @@ export async function initSfx(hud: BootedHud): Promise<void> {
     if (ctx.state === 'suspended') void ctx.resume();
     const src = ctx.createBufferSource();
     src.buffer = clip.buffer;
-    src.connect(gain);
+    // Each voice gets its own gain node so a single sound can be faded out
+    // independently (see stop(name, fadeMs)) without touching the master.
+    const g = ctx.createGain();
+    src.connect(g);
+    g.connect(gain);
     let set = active.get(name);
     if (!set) active.set(name, (set = new Set()));
-    set.add(src);
+    const voice: Voice = { src, g };
+    set.add(voice);
     src.onended = (): void => {
-      set!.delete(src);
+      set!.delete(voice);
     };
     src.start(0, clip.start, clip.dur);
   };

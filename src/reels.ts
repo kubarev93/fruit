@@ -33,6 +33,31 @@ import type { BonusResult, CoinValue } from './rgs/types';
 
 const TEASE_MIN_PAYOUT = 14;
 
+/**
+ * Reel motion profile — pixi-reels' built-in "normal" preset, but with a much
+ * shorter settle bounce. The stock 600ms bounce makes a reel emit
+ * `spin:reelLanded` (and resolve the spin) ~600ms AFTER its symbols visually
+ * snap into place, so the landing sound and the spin-loop stop both fired well
+ * after the reel had visibly stopped. A short bounce puts the "landed" beat on
+ * the visual stop. Tune `bounceDuration` / `bounceDistance` to taste.
+ */
+const REEL_PROFILE = {
+  name: 'normal',
+  spinDelay: 100,
+  spinSpeed: 30,
+  stopDelay: 140,
+  anticipationDelay: 450,
+  bounceDistance: 22,
+  bounceDuration: 120,
+  accelerationEase: 'power2.in',
+  decelerationEase: 'power2.out',
+  accelerationDuration: 300,
+  minimumSpinTime: 500,
+};
+
+/** Short fade so the spin loop stops cleanly (no click) right as the reels land. */
+const SPIN_FADE_MS = 120;
+
 export interface Board {
   readonly view: Container;
   spin(grid: string[][], turbo: boolean): Promise<void>;
@@ -80,6 +105,7 @@ export function createBoard(
       }
     })
     .weights(WEIGHTS)
+    .speed('normal', REEL_PROFILE)
     .ticker(ticker)
     .build();
 
@@ -105,7 +131,9 @@ export function createBoard(
     spotlight = null;
   }
 
-  reelSet.events.on('spin:reelLanded', () => playSfx('reelLanding'));
+  // Per-reel landing thunk. With the short bounce (REEL_PROFILE) this fires
+  // right as the reel snaps into place, so it reads as synced to the stop.
+  reelSet.events.on('spin:reelLanded', () => playSfx('reel-one-landing'));
 
   function toTargets(grid: string[][]): ColumnTarget[] {
     return grid.map((visible) => ({ visible }));
@@ -133,7 +161,7 @@ export function createBoard(
     clearCoins();
     stopSfx(); // clear any lingering long sound (spin/anticipation/bigwin) from before
     playSfx('spin-start');
-    playSfx('reelsSpin');
+    playSfx('wheels-spinning');
     const p = reelSet.spin();
     // Give the reels a beat of free spin before revealing the outcome.
     if (!turbo) await wait(220);
@@ -144,7 +172,7 @@ export function createBoard(
       playSfx('anticipation');
     }
     await p;
-    stopSfx('reelsSpin'); // the long spin loop ends the moment the reels land
+    stopSfx('wheels-spinning', SPIN_FADE_MS); // reels have landed — end the loop with a short fade
     stopSfx('anticipation');
     highlightWilds(grid);
     highlightCoins(grid);

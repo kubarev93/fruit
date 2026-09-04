@@ -1,5 +1,21 @@
 [
   {
+    "name": "wheels",
+    "src": [
+      "wheels.mp4"
+    ],
+    "sprite": {
+      "wheels-spinning": [
+        27000,
+        12180
+      ],
+      "reel-one-landing": [
+        41000,
+        518
+      ]
+    }
+  },
+  {
     "name": "keypad",
     "src": [
       "keypad.mp4"
