@@ -105,7 +105,8 @@ const GROUPS: Group[] = [
     buttons: [
       { label: 'BIG WIN', run: (a) => a.splash('big', 12) },
       { label: 'MEGA WIN', run: (a) => a.splash('mega', 37) },
-      { label: 'EPIC WIN', run: (a) => a.splash('epic', 150) },
+      { label: 'EPIC WIN', run: (a) => a.splash('epic', 70) },
+      { label: 'LEGENDARY WIN', run: (a) => a.splash('legendary', 250) },
     ],
   },
   {

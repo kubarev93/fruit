@@ -60,8 +60,8 @@ async function main(): Promise<void> {
   );
   world.addChild(board.view);
 
-  // Big/Mega/Epic win splash (coins + tier text + multiplier count-up).
-  const winfx = createWinFx(assets);
+  // Big/Mega/Epic/Legendary win splash (Spine sequence + multiplier count-up).
+  const winfx = createWinFx(assets, app.ticker);
   world.addChild(winfx.view);
 
   const rgs = createRgs({

@@ -1,0 +1,97 @@
+bigwin.png
+size: 3224.05,2166.65
+filter:Linear,Linear
+scale: 1
+Bokeh
+bounds: 988.55,1463.7,823.65,701.25
+offsets: 2.55,2.55,827.9,706.35
+Bokehred
+bounds: 1.7,1376.15,985.15,788.8
+offsets: 2.55,2.55,990.25,793.05
+Dastblue
+bounds: 1.7,651.1,854.25,723.35
+offsets: 1.7,1.7,860.2,730.15
+Frame
+bounds: 1813.9,1667.7,1151.75,246.5
+offsets: 1.7,1.7,1155.15,249.9
+Glow copy 2red
+bounds: 1.7,54.4,807.5,595
+offsets: 56.1,32.3,919.7,648.55
+Glow_1_purp
+bounds: 2274.6,837.25,563.55,559.3
+offsets: 60.35,55.25,694.45,672.35
+rotate:90
+Glow_1blue
+bounds: 810.9,81.6,563.55,559.3
+offsets: 60.35,55.25,694.45,672.35
+rotate:90
+Glow_1gold
+bounds: 1371.9,275.4,563.55,559.3
+offsets: 60.35,55.25,694.45,672.35
+Glow_2gold
+bounds: 1116.9,897.6,577.15,564.4
+offsets: 32.3,52.7,651.95,621.35
+Glow_2purp
+bounds: 1695.75,836.4,577.15,564.4
+offsets: 32.3,52.7,651.95,621.35
+Glowblue
+bounds: 2502.4,286.45,549.1,540.6
+offsets: 32.3,50.15,620.5,591.6
+rotate:90
+Layer 63
+bounds: 1813.9,1915.9,1197.65,249.05
+Layer 631
+bounds: 1981.35,16.15,504.05,257.55
+Layer 633
+bounds: 1813.9,1402.5,828.75,263.5
+Layer 63_
+bounds: 857.65,646.85,727.6,257.55
+rotate:90
+Layer 643
+bounds: 1371.9,24.65,607.75,249.05
+Layer 65
+bounds: 2877.25,67.15,309.4,217.6
+Layer 79
+bounds: 2644.35,1432.25,316.2,233.75
+Layer 79 copy
+bounds: 2502.4,9.35,373.15,275.4
+Plaate3
+bounds: 1.7,1.7,51,183.6
+rotate:90
+Plate1
+bounds: 2877.25,14.45,51,183.6
+rotate:90
+Plate2
+bounds: 1299.65,844.9,51,183.6
+rotate:90
+Plate4
+bounds: 187,1.7,51,183.6
+rotate:90
+Polygon 12red
+bounds: 1937.15,275.4,563.55,559.3
+offsets: 60.35,55.25,694.45,672.35
+Rays_burst_ring_hp2
+bounds: 2978.4,876.35,136,124.95
+offsets: 0.85,0.85,137.7,126.65
+holder_texture
+bounds: 988.55,1461.15,0.85,0.85
+star1
+bounds: 2835.6,1003,427.55,358.7
+rotate:90
+star2
+bounds: 1116.9,712.3,181.05,183.6
+offsets: 0,0.85,181.05,185.3
+star3
+bounds: 2835.6,865.3,141.1,136
+offsets: 0,0.85,141.95,137.7
+star4
+bounds: 3116.1,892.5,106.25,108.8
+star5
+bounds: 3013.25,2006,160.65,158.95
+offsets: 0.85,0.85,161.5,159.8
+toucan Originals coin 2
+bounds: 2967.35,1814.75,97.75,99.45
+offsets: 0.85,4.25,99.45,103.7
+toucan Originals coin 6
+bounds: 3013.25,1915.9,118.15,88.4
+offsets: 0.85,0.85,119,90.1

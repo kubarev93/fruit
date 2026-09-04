@@ -1,19 +1,26 @@
 import { AnimatedSprite, Container, Graphics, Sprite, Text } from 'pixi.js';
+import type { Ticker } from 'pixi.js';
 import { gsap } from 'gsap';
 import type { GameAssets } from './assets';
 import type { WinTier } from './config';
+import {
+  BIGWIN_NATIVE_W,
+  createBigWinSpine,
+  loadBigWinAssets,
+  type BigWinSpine,
+} from './bigWinSpine';
 
 export interface WinFx {
   readonly view: Container;
   layout(width: number, height: number): void;
-  /** Play the Big/Mega/Epic splash, counting the multiplier up. Resolves when done. */
   play(tier: WinTier, multiplier: number): Promise<void>;
   skip(): void;
 }
 
-const GLYPH_H = 150; // design height of the counter digits
+const GLYPH_H = 150;
+const HOLD_MS = 1100;
 
-export function createWinFx(assets: GameAssets): WinFx {
+export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
   const view = new Container();
   view.eventMode = 'none';
   view.visible = false;
@@ -21,7 +28,6 @@ export function createWinFx(assets: GameAssets): WinFx {
   const dim = new Graphics();
   view.addChild(dim);
 
-  // Everything else lives in a centered group we scale/position in layout().
   const group = new Container();
   view.addChild(group);
 
@@ -31,17 +37,15 @@ export function createWinFx(assets: GameAssets): WinFx {
   coins.loop = false;
   group.addChild(coins);
 
-  // Text sits in a wrapper so the "pop" animates the wrapper's scale while the
-  // sprite's own width/height stays fixed to the laid-out size.
   const textWrap = new Container();
   const text = new Sprite(assets.winText.big);
   text.anchor.set(0.5);
   textWrap.addChild(text);
   group.addChild(textWrap);
 
-  // The win multiplier counter is ONE Text object (updated via `.text`) — a
-  // single display object like the tier sprite, so it stays put. (An earlier
-  // multi-sprite glyph counter drifted under the per-frame count-up updates.)
+  const spineHolder = new Container();
+  group.addChild(spineHolder);
+
   const counter = new Text({
     text: '0x',
     style: {
@@ -56,13 +60,23 @@ export function createWinFx(assets: GameAssets): WinFx {
   counter.anchor.set(0.5);
   group.addChild(counter);
 
+  const TIER_INDEX: Record<WinTier, number> = { big: 0, mega: 1, epic: 2, legendary: 3 };
+
   let screenW = 0;
   let screenH = 0;
-  const timeline = { tl: null as gsap.core.Timeline | null };
+  let tl: gsap.core.Timeline | null = null;
+  let countTween: gsap.core.Tween | null = null;
 
-  function renderNumber(str: string): void {
-    counter.text = str;
-  }
+  let spine: BigWinSpine | null = null;
+  void loadBigWinAssets()
+    .then(() => {
+      spine = createBigWinSpine(ticker);
+      spineHolder.addChild(spine.view);
+      layout(screenW, screenH);
+    })
+    .catch(() => {
+      spine = null;
+    });
 
   function layout(width: number, height: number): void {
     screenW = width;
@@ -75,8 +89,7 @@ export function createWinFx(assets: GameAssets): WinFx {
     group.position.set(cx, cy);
 
     const span = Math.min(width, height);
-    const s = span / 760; // design span
-    group.scale.set(s);
+    group.scale.set(span / 760);
 
     coins.position.set(0, 10);
     coins.width = 820;
@@ -84,64 +97,86 @@ export function createWinFx(assets: GameAssets): WinFx {
     textWrap.position.set(0, -125);
     text.width = 600;
     text.height = text.width * (text.texture.height / text.texture.width);
-    counter.position.set(0, 75);
+
+    if (spine) {
+      spine.view.scale.set(940 / BIGWIN_NATIVE_W);
+      spine.view.position.set(0, -30);
+    }
+    counter.position.set(0, 150);
   }
 
   function reset(): void {
-    timeline.tl?.kill();
-    timeline.tl = null;
+    tl?.kill();
+    tl = null;
+    countTween?.kill();
+    countTween = null;
+    spine?.skip();
     view.visible = false;
     view.alpha = 1;
     coins.gotoAndStop(0);
   }
 
+  function runCount(target: number, duration: number): void {
+    const count = { v: 0 };
+    countTween = gsap.to(count, {
+      v: target,
+      duration,
+      ease: 'power1.out',
+      onUpdate: () => (counter.text = `${Math.floor(count.v)}x`),
+      onComplete: () => (counter.text = `${target}x`),
+    });
+  }
+
   async function play(tier: WinTier, multiplier: number): Promise<void> {
     reset();
-    text.texture = assets.winText[tier];
     layout(screenW, screenH);
 
     view.visible = true;
     view.alpha = 1;
     dim.alpha = 0;
-    textWrap.scale.set(0); // reset pop
+    counter.text = '0x';
     const target = Math.max(1, Math.round(multiplier));
-    renderNumber('0x');
 
-    const count = { v: 0 };
-    return new Promise<void>((resolve) => {
-      const tl = gsap.timeline({ onComplete: resolve });
-      timeline.tl = tl;
-      tl.to(dim, { alpha: 0.62, duration: 0.25 }, 0);
-      // coin burst
+    gsap.to(dim, { alpha: 0.62, duration: 0.25 });
+
+    if (spine) {
+      coins.visible = false;
+      textWrap.visible = false;
+      const escalateMs = 1000 + TIER_INDEX[tier] * 1320 + HOLD_MS * 0.6;
+      runCount(target, escalateMs / 1000);
+      await spine.play(tier, HOLD_MS);
+      await new Promise<void>((resolve) => {
+        tl = gsap.timeline({ onComplete: resolve });
+        tl.to(view, { alpha: 0, duration: 0.3, onComplete: () => (view.visible = false) });
+      });
+      return;
+    }
+
+    coins.visible = true;
+    textWrap.visible = true;
+    text.texture = tier === 'legendary' ? assets.winText.epic : assets.winText[tier];
+    layout(screenW, screenH);
+    textWrap.scale.set(0);
+
+    await new Promise<void>((resolve) => {
+      tl = gsap.timeline({ onComplete: resolve });
       tl.add(() => coins.gotoAndPlay(0), 0.05);
-      // tier text pop
       tl.fromTo(
         textWrap.scale,
         { x: 0, y: 0 },
         { x: 1, y: 1, duration: 0.5, ease: 'back.out(2)' },
         0.1,
       );
-      // count the multiplier up
-      tl.to(
-        count,
-        {
-          v: target,
-          duration: Math.min(1.6, 0.5 + target * 0.02),
-          ease: 'power1.out',
-          onUpdate: () => renderNumber(`${Math.floor(count.v)}x`),
-          onComplete: () => renderNumber(`${target}x`),
-        },
-        0.35,
-      );
-      // replay the coin burst once more for longer wins
+      tl.add(() => runCount(target, Math.min(1.8, 0.6 + target * 0.02)), 0.35);
       if (target >= 25) tl.add(() => coins.gotoAndPlay(0), 1.2);
-      tl.to({}, { duration: 0.9 }); // hold
+      tl.to({}, { duration: 0.9 });
       tl.to(view, { alpha: 0, duration: 0.4, onComplete: () => (view.visible = false) });
     });
   }
 
   function skip(): void {
-    if (timeline.tl) timeline.tl.progress(1);
+    spine?.skip();
+    tl?.progress(1);
   }
 
   return { view, layout, play, skip };

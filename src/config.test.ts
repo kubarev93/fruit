@@ -125,7 +125,9 @@ describe('winTier', () => {
     [25, 'mega'],
     [49.9, 'mega'],
     [50, 'epic'],
-    [1000, 'epic'],
+    [99.9, 'epic'],
+    [100, 'legendary'],
+    [1000, 'legendary'],
   ])('maps %s× to %s', (mult, tier) => {
     expect(winTier(mult)).toBe(tier);
   });
