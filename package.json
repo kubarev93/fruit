@@ -13,6 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@esotericsoftware/spine-pixi-v8": "~4.2.110",
     "@open-slot-ui/core": "^0.13.4",
     "@open-slot-ui/pixi": "^0.13.4",
     "gsap": "^3.13.0",

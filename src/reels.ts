@@ -5,6 +5,7 @@ import type { ReelSet, ColumnTarget, SymbolPosition } from 'pixi-reels';
 import { gsap } from 'gsap';
 import { CoinSymbol } from './CoinSymbol';
 import { COIN_TILE_FILL, COIN_JACKPOT_FILL, COIN_TEXT_BOX_W, COIN_TEXT_BOX_H, fitScale } from './coinFit';
+import { createChest, loadChestAssets, CHEST_NATIVE_W } from './chest';
 import { CoconutSymbol } from './CoconutSymbol';
 import { playSfx, stopSfx } from './sfx';
 import {
@@ -134,6 +135,10 @@ export function createBoard(
   // Per-reel landing thunk. With the short bounce (REEL_PROFILE) this fires
   // right as the reel snaps into place, so it reads as synced to the stop.
   reelSet.events.on('spin:reelLanded', () => playSfx('reel-one-landing'));
+
+  // Warm the Hold & Win chest Spine in the background so it's ready by the
+  // first bonus. Non-fatal: a failed load just means no chest.
+  void loadChestAssets().catch(() => {});
 
   function toTargets(grid: string[][]): ColumnTarget[] {
     return grid.map((visible) => ({ visible }));
@@ -486,6 +491,21 @@ export function createBoard(
       label.text = `RESPINS  ${n}`;
     };
 
+    // Chest that reacts to the collection: idles under the board, bumps on each
+    // fresh landing, and plays its level-up flourish on a full board. Optional —
+    // if the Spine assets didn't load, the bonus runs exactly as before.
+    let chest: ReturnType<typeof createChest> | null = null;
+    try {
+      await loadChestAssets();
+      chest = createChest(ticker);
+      const c = chest.view;
+      c.scale.set((CELL * 2.0) / CHEST_NATIVE_W);
+      c.position.set(0, BLOCK_H / 2 + CELL * 0.05);
+      layer.addChild(c);
+    } catch {
+      chest = null;
+    }
+
     const seeded = new Map<string, CoinValue>();
     for (const coin of bonus.seed) seeded.set(cKey(coin.reel, coin.cell), coin.value);
     for (let reel = 0; reel < REELS; reel++) {
@@ -503,12 +523,14 @@ export function createBoard(
         const cont = setCell(land.reel, land.cell, land.value);
         gsap.from(cont.scale, { x: 0, y: 0, duration: 0.32, ease: 'back.out(2)' });
       }
+      if (step.lands.length > 0) chest?.playHit();
       setRespins(step.respinsLeft);
       playSfx(step.lands.length > 0 ? 'stickyReelLanding' : 'stickyNoWin');
       await waitFrames(750);
     }
 
     label.text = bonus.fullBoard ? 'FULL BOARD!' : 'COLLECT';
+    if (bonus.fullBoard) chest?.playTransition();
     playSfx('stickyEnds');
     await waitFrames(900);
     layer.destroy({ children: true });
