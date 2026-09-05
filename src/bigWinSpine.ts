@@ -1,4 +1,5 @@
 import { Assets, Container, Ticker } from 'pixi.js';
+import { gsap } from 'gsap';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import type { WinTier } from './config';
 
@@ -19,6 +20,7 @@ const WIN_ANIM: Record<WinTier, string> = {
 const TRANSITION_ANIM = ['big_to_mega', 'mega_to_epic', 'epic_to_legendary'];
 
 const MIX = 0.16;
+const TIER_HOLD_S = 0.5;
 
 let loadPromise: Promise<void> | null = null;
 
@@ -48,7 +50,13 @@ export function createBigWinSpine(ticker?: Ticker): BigWinSpine {
 
   let resolvePlay: (() => void) | null = null;
 
+  function stopTweens(): void {
+    gsap.killTweensOf(spine);
+    gsap.killTweensOf(spine.scale);
+  }
+
   function finish(): void {
+    stopTweens();
     view.visible = false;
     const r = resolvePlay;
     resolvePlay = null;
@@ -63,9 +71,17 @@ export function createBigWinSpine(ticker?: Ticker): BigWinSpine {
     spine.skeleton.setToSetupPose();
     view.visible = true;
 
-    st.setAnimation(0, 'show', false);
-    for (let i = 0; i < targetIdx; i++) st.addAnimation(0, TRANSITION_ANIM[i]!, false, 0);
-    st.addAnimation(0, WIN_ANIM[tier], false, 0);
+    stopTweens();
+    spine.alpha = 0;
+    spine.scale.set(0.82);
+    gsap.to(spine, { alpha: 1, duration: 0.2 });
+    gsap.to(spine.scale, { x: 1, y: 1, duration: 0.45, ease: 'back.out(1.6)' });
+
+    st.setAnimation(0, WIN_ANIM.big, false);
+    for (let i = 0; i < targetIdx; i++) {
+      st.addAnimation(0, TRANSITION_ANIM[i]!, false, TIER_HOLD_S);
+      st.addAnimation(0, WIN_ANIM[TIERS[i + 1]!], false, 0);
+    }
     const hide = st.addAnimation(0, 'hide', false, holdMs / 1000);
 
     return new Promise<void>((resolve) => {
@@ -80,6 +96,7 @@ export function createBigWinSpine(ticker?: Ticker): BigWinSpine {
   }
 
   function destroy(): void {
+    stopTweens();
     view.destroy({ children: true });
   }
 
