@@ -221,7 +221,6 @@ export function createBoard(
   const coinFountain = createCoinFountain(renderer);
   overlay.addChild(coinFountain.view);
   const winBadge = createWinBadge();
-  overlay.addChild(winBadge.view);
   const tweens: gsap.core.Tween[] = [];
   let lineCycle: gsap.core.Tween | null = null;
 
@@ -229,6 +228,9 @@ export function createBoard(
   const fxTop = new Container();
   fxTop.eventMode = 'none';
   view.addChild(fxTop);
+  // Win amount rides the very top layer so reel symbols and win frames can't
+  // cover it. fxTop is board-centred, so cell coords are offset by -BLOCK/2.
+  fxTop.addChild(winBadge.view);
 
   let baseX = 0;
   let baseY = 0;
@@ -600,7 +602,7 @@ export function createBoard(
 
     const bx = winCenters.reduce((s, c) => s + c.x, 0) / winCenters.length;
     const by = winCenters.reduce((s, c) => s + c.y, 0) / winCenters.length;
-    winBadge.show(bx, by, amount, CELL);
+    winBadge.show(bx - BLOCK_W / 2, by - BLOCK_H / 2, amount, CELL);
 
     // Sound: payline sweep + a win chime scaled to the best line.
     const best = Math.max(...wins.map((w) => w.multiplier));
