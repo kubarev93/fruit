@@ -412,6 +412,34 @@ export function createBoard(
     tl.to(s.scale, { x: 0, y: 0, duration: 0.5, ease: 'sine.in' });
   }
 
+  /** Soft radial glow disc (concentric fills) for the bonus spotlight. */
+  function glowDisc(radius: number, color: number, maxAlpha: number): Graphics {
+    const g = new Graphics();
+    const steps = 26;
+    for (let i = steps; i >= 1; i--) {
+      const r = (radius * i) / steps;
+      g.circle(0, 0, r).fill({ color, alpha: maxAlpha * Math.pow(1 - i / steps, 1.4) });
+    }
+    return g;
+  }
+
+  /** One rising, twinkling ambient mote for the bonus atmosphere. */
+  function spawnBonusSparkle(parent: Container): void {
+    const s = new Sprite(twinkleTex);
+    s.anchor.set(0.5);
+    s.blendMode = 'add';
+    s.tint = 0xffe6a0;
+    s.position.set(rnd(-BLOCK_W * 0.62, BLOCK_W * 0.62), rnd(-BLOCK_H * 0.5, BLOCK_H * 0.65));
+    const size = (CELL * rnd(0.06, 0.16)) / twinkleTex.width;
+    s.scale.set(0);
+    s.rotation = rnd(0, Math.PI);
+    parent.addChild(s);
+    const tl = gsap.timeline({ onComplete: () => s.destroy() });
+    tl.to(s.scale, { x: size, y: size, duration: 0.4, ease: 'sine.out' }, 0);
+    tl.to(s.scale, { x: 0, y: 0, duration: 0.7, ease: 'sine.in' }, 0.4);
+    tl.to(s, { y: s.y - CELL * rnd(0.4, 0.9), duration: 1.1, ease: 'sine.out' }, 0);
+  }
+
   let twinkleAcc = 0;
   let twinkleNext = 1.6;
   ticker.add((tk) => {
@@ -703,10 +731,23 @@ export function createBoard(
 
     const layer = new Container();
     view.addChild(layer);
+
+    // Warm dark backdrop (covers the whole screen at any board scale).
     const dim = new Graphics();
-    dim.rect(-BLOCK_W / 2 - CELL, -BLOCK_H / 2 - CELL, BLOCK_W + CELL * 2, BLOCK_H + CELL * 2)
-      .fill({ color: 0x000000, alpha: 0.66 });
+    dim.rect(-BLOCK_W * 2.5, -BLOCK_H * 2.5, BLOCK_W * 5, BLOCK_H * 5).fill({ color: 0x0b0713, alpha: 0.9 });
     layer.addChild(dim);
+
+    // Golden spotlight glow behind the coin board, gently breathing.
+    const glow = glowDisc(BLOCK_W * 1.05, 0xffb43e, 0.44);
+    glow.blendMode = 'add';
+    layer.addChild(glow);
+    gsap.to(glow.scale, { x: 1.08, y: 1.08, duration: 1.8, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+
+    // Ambient rising motes for atmosphere.
+    const ambientLayer = new Container();
+    layer.addChild(ambientLayer);
+    const ambient = gsap.timeline({ repeat: -1 });
+    ambient.call(() => spawnBonusSparkle(ambientLayer)).to({}, { duration: 0.26 });
 
     const boardLayer = new Container();
     boardLayer.x = -BLOCK_W / 2;
@@ -722,22 +763,34 @@ export function createBoard(
       return cont;
     };
 
+    const respinBox = new Container();
+    respinBox.position.set(0, -BLOCK_H / 2 - CELL * 0.78);
+    const boxBg = new Graphics();
+    respinBox.addChild(boxBg);
     const label = new Text({
       text: '',
       style: {
         fontFamily: 'Arial Black, Arial, sans-serif',
-        fontSize: CELL * 0.3,
+        fontSize: CELL * 0.32,
         fontWeight: '900',
-        fill: '#ffffff',
-        stroke: { color: '#1b3a6b', width: CELL * 0.03, join: 'round' },
+        fill: '#ffd83a',
+        stroke: { color: '#3a1c00', width: CELL * 0.035, join: 'round' },
       },
     });
-    label.anchor.set(0.5, 0);
-    label.position.set(0, -BLOCK_H / 2 - CELL * 0.62);
-    layer.addChild(label);
-    const setRespins = (n: number): void => {
-      label.text = `RESPINS  ${n}`;
+    label.anchor.set(0.5);
+    respinBox.addChild(label);
+    layer.addChild(respinBox);
+    const setBanner = (text: string): void => {
+      label.text = text;
+      const w = label.width + CELL * 0.5;
+      const h = label.height + CELL * 0.2;
+      boxBg
+        .clear()
+        .roundRect(-w / 2, -h / 2, w, h, h * 0.4)
+        .fill({ color: 0x140a1e, alpha: 0.85 })
+        .stroke({ width: h * 0.07, color: 0xffcf5a });
     };
+    const setRespins = (n: number): void => setBanner(`RESPINS  ${n}`);
 
     // Chest that reacts to the collection: idles under the board, bumps on each
     // fresh landing, and plays its level-up flourish on a full board. Optional —
@@ -777,10 +830,12 @@ export function createBoard(
       await waitFrames(750);
     }
 
-    label.text = bonus.fullBoard ? 'FULL BOARD!' : 'COLLECT';
+    setBanner(bonus.fullBoard ? 'FULL BOARD!' : 'COLLECT');
     if (bonus.fullBoard) chest?.playTransition();
     playSfx('stickyEnds');
     await waitFrames(900);
+    ambient.kill();
+    gsap.killTweensOf(glow.scale);
     layer.destroy({ children: true });
     bonusActive = false;
   }
