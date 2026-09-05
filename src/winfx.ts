@@ -59,8 +59,6 @@ export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
   counter.anchor.set(0.5);
   group.addChild(counter);
 
-  const TIER_INDEX: Record<WinTier, number> = { big: 0, mega: 1, epic: 2, legendary: 3 };
-
   let screenW = 0;
   let screenH = 0;
   let tl: gsap.core.Timeline | null = null;
@@ -148,8 +146,8 @@ export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
     if (spine) {
       coins.visible = false;
       textWrap.visible = false;
-      const escalateMs = 1000 + TIER_INDEX[tier] * 1320 + HOLD_MS * 0.6;
-      runCount(target, escalateMs / 1000);
+      // show reveal (~1s) + part of the hold; the amount settles before hide.
+      runCount(target, (1000 + HOLD_MS * 0.6) / 1000);
       // Fade the amount out with the holder frame when the spine starts hiding.
       await spine.play(tier, HOLD_MS, () => {
         gsap.to(counter, { alpha: 0, duration: 0.55, ease: 'power1.in' });

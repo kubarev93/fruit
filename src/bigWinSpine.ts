@@ -8,19 +8,7 @@ const BASE = 'assets/win/bigwin';
 export const BIGWIN_NATIVE_W = 1439;
 export const BIGWIN_NATIVE_H = 1190;
 
-const TIERS: WinTier[] = ['big', 'mega', 'epic', 'legendary'];
-
-const WIN_ANIM: Record<WinTier, string> = {
-  big: 'big_win',
-  mega: 'mega_win',
-  epic: 'epic_win',
-  legendary: 'legendary_win',
-};
-
-const TRANSITION_ANIM = ['big_to_mega', 'mega_to_epic', 'epic_to_legendary'];
-
-const MIX = 0.16;
-const TIER_HOLD_S = 0.5;
+const MIX = 0.25;
 
 let loadPromise: Promise<void> | null = null;
 
@@ -63,8 +51,7 @@ export function createBigWinSpine(ticker?: Ticker): BigWinSpine {
     r?.();
   }
 
-  function play(tier: WinTier, holdMs: number, onHide?: () => void): Promise<void> {
-    const targetIdx = Math.max(0, TIERS.indexOf(tier));
+  function play(_tier: WinTier, holdMs: number, onHide?: () => void): Promise<void> {
     const st = spine.state;
 
     st.clearTracks();
@@ -74,14 +61,11 @@ export function createBigWinSpine(ticker?: Ticker): BigWinSpine {
     spine.alpha = 1;
     spine.scale.set(1);
 
-    // Authored order: show reveals the frame, then the tier word steps up
-    // (WIN -> BIG -> MEGA -> ...) through the transitions, then hide.
+    // Clean, jump-free presentation: the authored `show` reveals the "BIG WIN!"
+    // frame, it holds while the amount counts up, then `hide` takes it out. The
+    // per-tier word poses sit at different heights with no smooth transition, so
+    // stepping through them read as a jump; the reveal alone is the win moment.
     st.setAnimation(0, 'show', false);
-    st.addAnimation(0, WIN_ANIM.big, false, 0);
-    for (let i = 0; i < targetIdx; i++) {
-      st.addAnimation(0, TRANSITION_ANIM[i]!, false, TIER_HOLD_S);
-      st.addAnimation(0, WIN_ANIM[TIERS[i + 1]!], false, 0);
-    }
     const hide = st.addAnimation(0, 'hide', false, holdMs / 1000);
 
     return new Promise<void>((resolve) => {
