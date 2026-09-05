@@ -317,13 +317,10 @@ export function createBoard(
     clearWins();
     if (wins.length === 0) return;
 
-    const a = cellCenter(0, 0);
-    const b = cellCenter(REELS - 1, ROWS - 1);
-    coinFountain.burst((a.x + b.x) / 2, (a.y + b.y) / 2, BLOCK_W);
-
     // A burning gold frame on every unique winning cell.
     const seen = new Set<string>();
     const positions: SymbolPosition[] = [];
+    const winCenters: { x: number; y: number }[] = [];
     for (const win of wins) {
       for (const [reel, cell] of win.cells) {
         const key = `${reel}:${cell}`;
@@ -331,6 +328,7 @@ export function createBoard(
         seen.add(key);
         positions.push({ reelIndex: reel, cellIndex: cell });
         const c = cellCenter(reel, cell);
+        winCenters.push({ x: c.x, y: c.y });
         const anim = new AnimatedSprite(winFrameTextures);
         anim.anchor.set(0.5);
         anim.position.set(c.x, c.y);
@@ -344,6 +342,8 @@ export function createBoard(
         playBurst(reel, cell); // star-burst + coin shower on the winning symbol
       }
     }
+
+    coinFountain.burst(winCenters, BLOCK_W);
 
     // Sound: payline sweep + a win chime scaled to the best line.
     const best = Math.max(...wins.map((w) => w.multiplier));

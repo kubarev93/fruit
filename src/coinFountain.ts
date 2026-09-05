@@ -2,9 +2,14 @@ import { Container, Graphics, Sprite, Texture } from 'pixi.js';
 import type { Renderer } from 'pixi.js';
 import { gsap } from 'gsap';
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
 export interface CoinFountain {
   readonly view: Container;
-  burst(cx: number, cy: number, board: number): void;
+  burst(origins: Point[], board: number): void;
   clear(): void;
 }
 
@@ -63,72 +68,77 @@ export function createCoinFountain(renderer: Renderer): CoinFountain {
     return t;
   }
 
-  function burst(cx: number, cy: number, board: number): void {
-    const N = 26;
+  function spawnCoin(cx: number, cy: number, board: number): void {
+    const coin = new Sprite(coinTex);
+    coin.anchor.set(0.5);
+    const size = (board * rnd(0.06, 0.1)) / coinPx;
+    coin.position.set(cx + rnd(-0.03, 0.03) * board, cy + rnd(-0.03, 0.03) * board);
+    coin.scale.set(0);
+    view.addChild(coin);
+
     const grav = 3.6 * board;
-    for (let i = 0; i < N; i++) {
-      const coin = new Sprite(coinTex);
-      coin.anchor.set(0.5);
-      const size = (board * rnd(0.06, 0.1)) / coinPx;
-      coin.position.set(cx + rnd(-0.04, 0.04) * board, cy + rnd(-0.04, 0.04) * board);
-      coin.scale.set(0);
-      view.addChild(coin);
+    const delay = rnd(0, 0.12);
+    const angle = -Math.PI / 2 + rnd(-1, 1) * 1.4;
+    const speed = rnd(0.8, 1.5) * board;
+    const vx = Math.cos(angle) * speed;
+    const vy = Math.sin(angle) * speed;
+    const dur = rnd(1.0, 1.5);
+    const state = { t: 0 };
 
-      const delay = rnd(0, 0.12);
-      const angle = -Math.PI / 2 + rnd(-1, 1) * 1.15;
-      const speed = rnd(0.9, 1.7) * board;
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-      const dur = rnd(1.0, 1.5);
-      const state = { t: 0 };
+    track(
+      gsap.to(coin.scale, {
+        x: size,
+        y: size,
+        duration: 0.13,
+        delay,
+        ease: 'back.out(2.5)',
+        onComplete: () => spin(coin, size),
+      }),
+    );
+    track(
+      gsap.to(state, {
+        t: dur,
+        duration: dur,
+        delay,
+        ease: 'none',
+        onUpdate: () => {
+          coin.x = cx + vx * state.t;
+          coin.y = cy + vy * state.t + 0.5 * grav * state.t * state.t;
+        },
+      }),
+    );
+    track(
+      gsap.to(coin, {
+        alpha: 0,
+        duration: 0.28,
+        delay: delay + dur - 0.28,
+        ease: 'power1.in',
+        onComplete: () => coin.destroy(),
+      }),
+    );
+  }
 
-      track(
-        gsap.to(coin.scale, {
-          x: size,
-          y: size,
-          duration: 0.13,
-          delay,
-          ease: 'back.out(2.5)',
-          onComplete: () => spin(coin, size),
-        }),
-      );
-      track(
-        gsap.to(state, {
-          t: dur,
-          duration: dur,
-          delay,
-          ease: 'none',
-          onUpdate: () => {
-            const tt = state.t;
-            coin.x = cx + vx * tt;
-            coin.y = cy + vy * tt + 0.5 * grav * tt * tt;
-          },
-        }),
-      );
-      track(
-        gsap.to(coin, {
-          alpha: 0,
-          duration: 0.28,
-          delay: delay + dur - 0.28,
-          ease: 'power1.in',
-          onComplete: () => coin.destroy(),
-        }),
-      );
-    }
+  function spawnSpark(cx: number, cy: number, board: number): void {
+    const s = new Sprite(sparkTex);
+    s.anchor.set(0.5);
+    s.blendMode = 'add';
+    const size = (board * rnd(0.03, 0.06)) / sparkPx;
+    s.position.set(cx + rnd(-0.12, 0.12) * board, cy + rnd(-0.12, 0.12) * board);
+    s.scale.set(0);
+    s.rotation = rnd(0, Math.PI);
+    view.addChild(s);
+    const tl = gsap.timeline({ delay: rnd(0, 0.5) });
+    tl.to(s.scale, { x: size, y: size, duration: 0.16, ease: 'back.out(3)' });
+    tl.to(s.scale, { x: 0, y: 0, duration: 0.3, ease: 'power1.in', onComplete: () => s.destroy() });
+    track(tl as unknown as gsap.core.Tween);
+  }
 
-    for (let i = 0; i < 10; i++) {
-      const s = new Sprite(sparkTex);
-      s.anchor.set(0.5);
-      s.blendMode = 'add';
-      const size = (board * rnd(0.03, 0.06)) / sparkPx;
-      s.position.set(cx + rnd(-0.3, 0.3) * board, cy + rnd(-0.25, 0.2) * board);
-      s.scale.set(0);
-      s.rotation = rnd(0, Math.PI);
-      view.addChild(s);
-      const tl = gsap.timeline({ delay: rnd(0, 0.6) });
-      tl.to(s.scale, { x: size, y: size, duration: 0.16, ease: 'back.out(3)' });
-      tl.to(s.scale, { x: 0, y: 0, duration: 0.3, ease: 'power1.in', onComplete: () => s.destroy() });
-      track(tl as unknown as gsap.core.Tween);
+  function burst(origins: Point[], board: number): void {
+    if (origins.length === 0) return;
+    const perOrigin = Math.max(6, Math.round(24 / origins.length));
+    for (const o of origins) {
+      for (let i = 0; i < perOrigin; i++) spawnCoin(o.x, o.y, board);
+      for (let i = 0; i < 4; i++) spawnSpark(o.x, o.y, board);
     }
   }
 
