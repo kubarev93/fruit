@@ -16,7 +16,7 @@ export interface WinFx {
 const GLYPH_H = 150;
 const HOLD_MS = 1100;
 const BIGWIN_SCALE = 0.32;
-const BIGWIN_ROOT_Y = 40;
+const BIGWIN_ROOT_Y = -20;
 const BIGWIN_HOLDER_Y = 637.2;
 
 export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
@@ -101,7 +101,7 @@ export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
       const s = BIGWIN_SCALE;
       spine.view.scale.set(s);
       spine.view.position.set(0, BIGWIN_ROOT_Y);
-      counter.scale.set(0.72);
+      counter.scale.set(0.6);
       counter.position.set(0, BIGWIN_ROOT_Y + BIGWIN_HOLDER_Y * s);
     } else {
       counter.scale.set(1);

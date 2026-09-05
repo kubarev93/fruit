@@ -109,7 +109,8 @@ async function main(): Promise<void> {
     await board.spin(round.grid, turboOn());
 
     if (round.wins.length > 0) {
-      const framesP = board.showWins(round.wins, round.win);
+      const isBig = winTier(round.win / bet) !== null;
+      const framesP = board.showWins(round.wins, round.win, isBig);
       await bigWinSplash(round.win, bet);
       await framesP;
     }
