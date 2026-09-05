@@ -7,6 +7,7 @@ import { CoinSymbol } from './CoinSymbol';
 import { COIN_TILE_FILL, COIN_JACKPOT_FILL, COIN_TEXT_BOX_W, COIN_TEXT_BOX_H, fitScale } from './coinFit';
 import { createChest, loadChestAssets, CHEST_NATIVE_W } from './chest';
 import { createCoinFountain } from './coinFountain';
+import { createWinBadge } from './winBadge';
 import { CoconutSymbol } from './CoconutSymbol';
 import { playSfx, stopSfx } from './sfx';
 import {
@@ -202,6 +203,8 @@ export function createBoard(
   overlay.addChild(line);
   const coinFountain = createCoinFountain(renderer);
   overlay.addChild(coinFountain.view);
+  const winBadge = createWinBadge();
+  overlay.addChild(winBadge.view);
   const tweens: gsap.core.Tween[] = [];
   let lineCycle: gsap.core.Tween | null = null;
 
@@ -345,6 +348,11 @@ export function createBoard(
 
     coinFountain.burst(winCenters, BLOCK_W);
 
+    const totalMult = wins.reduce((sum, w) => sum + w.multiplier, 0);
+    const bx = winCenters.reduce((s, c) => s + c.x, 0) / winCenters.length;
+    const by = winCenters.reduce((s, c) => s + c.y, 0) / winCenters.length;
+    winBadge.show(bx, by, totalMult, CELL);
+
     // Sound: payline sweep + a win chime scaled to the best line.
     const best = Math.max(...wins.map((w) => w.multiplier));
     playSfx('betline');
@@ -386,6 +394,7 @@ export function createBoard(
     winFrames.length = 0;
     clearBursts();
     coinFountain.clear();
+    winBadge.clear();
     line.clear();
     line.alpha = 0;
   }
