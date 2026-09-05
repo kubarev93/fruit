@@ -18,34 +18,18 @@ const WIN_ANIM: Record<WinTier, string> = {
 
 const TRANSITION_ANIM = ['big_to_mega', 'mega_to_epic', 'epic_to_legendary'];
 
-const SKELETONS = [
-  'show',
-  'hide',
-  'big_win',
-  'mega_win',
-  'epic_win',
-  'legendary_win',
-  'big_to_mega',
-  'mega_to_epic',
-  'epic_to_legendary',
-];
-
-const ESCALATE_GAP_MS = 320;
+const MIX = 0.16;
 
 let loadPromise: Promise<void> | null = null;
 
 export function loadBigWinAssets(): Promise<void> {
   if (!loadPromise) {
     Assets.add({ alias: 'bigwinAtlas', src: `${BASE}/bigwin.atlas` });
-    for (const s of SKELETONS) Assets.add({ alias: `bigwin_${s}`, src: `${BASE}/${s}.json` });
-    loadPromise = Assets.load(['bigwinAtlas', ...SKELETONS.map((s) => `bigwin_${s}`)]).then(
-      () => undefined,
-    );
+    Assets.add({ alias: 'bigwinSkel', src: `${BASE}/bigwin.json` });
+    loadPromise = Assets.load(['bigwinAtlas', 'bigwinSkel']).then(() => undefined);
   }
   return loadPromise;
 }
-
-const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 export interface BigWinSpine {
   readonly view: Container;
@@ -57,83 +41,46 @@ export interface BigWinSpine {
 export function createBigWinSpine(ticker?: Ticker): BigWinSpine {
   const view = new Container();
   view.visible = false;
-  const cache = new Map<string, Spine>();
-  let aborted = false;
-  let resolveStep: (() => void) | null = null;
 
-  const get = (key: string): Spine => {
-    let sp = cache.get(key);
-    if (!sp) {
-      sp = Spine.from({ skeleton: `bigwin_${key}`, atlas: 'bigwinAtlas', ticker });
-      sp.visible = false;
-      view.addChild(sp);
-      cache.set(key, sp);
-    }
-    return sp;
-  };
+  const spine = Spine.from({ skeleton: 'bigwinSkel', atlas: 'bigwinAtlas', ticker });
+  view.addChild(spine);
+  spine.state.data.defaultMix = MIX;
 
-  const show = (key: string): Spine => {
-    const target = get(key);
-    for (const [k, sp] of cache) sp.visible = k === key;
-    return target;
-  };
+  let resolvePlay: (() => void) | null = null;
 
-  const playOnce = (key: string): Promise<void> =>
-    new Promise((resolve) => {
-      const sp = show(key);
-      resolveStep = resolve;
-      const entry = sp.state.setAnimation(0, key, false);
-      entry.listener = {
-        complete: () => {
-          resolveStep = null;
-          resolve();
-        },
-      };
-    });
-
-  const pose = (key: string): void => {
-    const sp = show(key);
-    sp.state.setAnimation(0, key, false);
-  };
-
-  const finish = (): void => {
+  function finish(): void {
     view.visible = false;
-    for (const sp of cache.values()) sp.visible = false;
-  };
+    const r = resolvePlay;
+    resolvePlay = null;
+    r?.();
+  }
 
-  async function play(tier: WinTier, holdMs: number): Promise<void> {
-    aborted = false;
-    view.visible = true;
+  function play(tier: WinTier, holdMs: number): Promise<void> {
     const targetIdx = Math.max(0, TIERS.indexOf(tier));
+    const st = spine.state;
 
-    await playOnce('show');
-    if (aborted) return finish();
-    pose('big_win');
+    st.clearTracks();
+    spine.skeleton.setToSetupPose();
+    view.visible = true;
 
-    for (let i = 0; i < targetIdx; i++) {
-      await wait(ESCALATE_GAP_MS);
-      if (aborted) return finish();
-      await playOnce(TRANSITION_ANIM[i]!);
-      if (aborted) return finish();
-      pose(WIN_ANIM[TIERS[i + 1]!]);
-    }
+    st.setAnimation(0, 'show', false);
+    for (let i = 0; i < targetIdx; i++) st.addAnimation(0, TRANSITION_ANIM[i]!, false, 0);
+    st.addAnimation(0, WIN_ANIM[tier], false, 0);
+    const hide = st.addAnimation(0, 'hide', false, holdMs / 1000);
 
-    await wait(holdMs);
-    if (aborted) return finish();
-
-    await playOnce('hide');
-    finish();
+    return new Promise<void>((resolve) => {
+      resolvePlay = resolve;
+      hide.listener = { complete: () => finish() };
+    });
   }
 
   function skip(): void {
-    aborted = true;
-    resolveStep?.();
-    resolveStep = null;
+    spine.state.clearTracks();
+    finish();
   }
 
   function destroy(): void {
     view.destroy({ children: true });
-    cache.clear();
   }
 
   return { view, play, skip, destroy };
