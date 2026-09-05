@@ -6,6 +6,7 @@ import { gsap } from 'gsap';
 import { CoinSymbol } from './CoinSymbol';
 import { COIN_TILE_FILL, COIN_JACKPOT_FILL, COIN_TEXT_BOX_W, COIN_TEXT_BOX_H, fitScale } from './coinFit';
 import { createChest, loadChestAssets, CHEST_NATIVE_W } from './chest';
+import { createCoinFountain } from './coinFountain';
 import { CoconutSymbol } from './CoconutSymbol';
 import { playSfx, stopSfx } from './sfx';
 import {
@@ -199,6 +200,8 @@ export function createBoard(
   const coinFx: Container[] = [];
   const line = new Graphics();
   overlay.addChild(line);
+  const coinFountain = createCoinFountain(renderer);
+  overlay.addChild(coinFountain.view);
   const tweens: gsap.core.Tween[] = [];
   let lineCycle: gsap.core.Tween | null = null;
 
@@ -314,6 +317,10 @@ export function createBoard(
     clearWins();
     if (wins.length === 0) return;
 
+    const a = cellCenter(0, 0);
+    const b = cellCenter(REELS - 1, ROWS - 1);
+    coinFountain.burst((a.x + b.x) / 2, (a.y + b.y) / 2, BLOCK_W);
+
     // A burning gold frame on every unique winning cell.
     const seen = new Set<string>();
     const positions: SymbolPosition[] = [];
@@ -378,6 +385,7 @@ export function createBoard(
     for (const a of winFrames) a.destroy();
     winFrames.length = 0;
     clearBursts();
+    coinFountain.clear();
     line.clear();
     line.alpha = 0;
   }
