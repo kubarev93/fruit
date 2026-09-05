@@ -97,38 +97,23 @@ export function initAudio(hud: BootedHud): void {
 
   bonusImpl = (on: boolean): void => {
     if (on === inBonus) return;
-    const prev = active();
+    const outgoing = active();
     inBonus = on;
-    const next = active();
+    const incoming = active();
     window.clearInterval(fadeId);
 
-    const startNext = (): void => {
-      next.volume = 0;
+    // Fade the current track out and pause it, then bring the other in. The main
+    // loop is silenced for the whole bonus; if the bonus track isn't available
+    // the bonus simply runs on its SFX (no music bed) until one is added.
+    fade(outgoing, 0, () => {
+      outgoing.pause();
+      incoming.volume = 0;
+      if (on) incoming.currentTime = 0;
       if (unlocked && !ui.muted.get()) {
-        if (on) next.currentTime = 0;
-        void next.play().catch(() => undefined);
-      }
-      fade(next, target());
-    };
-
-    // Fade the old track out and pause it; bring the new one in. If the bonus
-    // track fails to start, fall back to the main loop so it never goes silent.
-    fade(prev, 0, () => {
-      if (on) {
-        next
+        incoming
           .play()
-          .then(() => {
-            prev.pause();
-            startNext();
-          })
-          .catch(() => {
-            inBonus = false;
-            fade(main, target());
-            if (unlocked && !ui.muted.get()) void main.play().catch(() => undefined);
-          });
-      } else {
-        prev.pause();
-        startNext();
+          .then(() => fade(incoming, target()))
+          .catch(() => undefined);
       }
     });
   };
