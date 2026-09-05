@@ -70,14 +70,14 @@ export function createBigWinSpine(ticker?: Ticker): BigWinSpine {
     st.clearTracks();
     spine.skeleton.setToSetupPose();
     view.visible = true;
-
     stopTweens();
-    spine.alpha = 0;
-    spine.scale.set(0.82);
-    gsap.to(spine, { alpha: 1, duration: 0.2 });
-    gsap.to(spine.scale, { x: 1, y: 1, duration: 0.45, ease: 'back.out(1.6)' });
+    spine.alpha = 1;
+    spine.scale.set(1);
 
-    st.setAnimation(0, WIN_ANIM.big, false);
+    // Authored order: show reveals the frame, then the tier word steps up
+    // (WIN -> BIG -> MEGA -> ...) through the transitions, then hide.
+    st.setAnimation(0, 'show', false);
+    st.addAnimation(0, WIN_ANIM.big, false, 0);
     for (let i = 0; i < targetIdx; i++) {
       st.addAnimation(0, TRANSITION_ANIM[i]!, false, TIER_HOLD_S);
       st.addAnimation(0, WIN_ANIM[TIERS[i + 1]!], false, 0);
