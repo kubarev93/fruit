@@ -92,7 +92,7 @@ async function main(): Promise<void> {
     if (!tier) return;
     duckMusic(true);
     playSfx('bigwin');
-    await winfx.play(tier, win / bet);
+    await winfx.play(tier, win);
     stopSfx('bigwin');
     duckMusic(false);
   }
@@ -109,7 +109,7 @@ async function main(): Promise<void> {
     await board.spin(round.grid, turboOn());
 
     if (round.wins.length > 0) {
-      const framesP = board.showWins(round.wins);
+      const framesP = board.showWins(round.wins, round.win);
       await bigWinSplash(round.win, bet);
       await framesP;
     }
@@ -204,8 +204,9 @@ async function main(): Promise<void> {
     const { mountMocks } = await import('./mocks');
     mountMocks({
       round: (grid) => void doRound(grid),
-      splash: (tier, mult) => void winfx.play(tier, mult),
-      frames: (wins) => void board.showWins(wins),
+      splash: (tier, mult) => void winfx.play(tier, mult * ui.bet.get()),
+      frames: (wins) =>
+        void board.showWins(wins, wins.reduce((s, w) => s + w.multiplier, 0) * ui.bet.get()),
       clear: () => board.clearWins(),
       intro: () => playIntro(),
       isBusy: () => rounding,

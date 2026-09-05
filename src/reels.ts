@@ -65,7 +65,7 @@ export interface Board {
   readonly view: Container;
   spin(grid: string[][], turbo: boolean): Promise<void>;
   skip(): void;
-  showWins(wins: LineWin[]): Promise<void>;
+  showWins(wins: LineWin[], amount: number): Promise<void>;
   clearWins(): void;
   layout(width: number, height: number, top: number, bottom: number): void;
   runBonus(bonus: BonusResult): Promise<void>;
@@ -565,7 +565,7 @@ export function createBoard(
     line.stroke({ color: 0xffe14d, width: 12, cap: 'round', join: 'round', alpha: 0.95 });
   }
 
-  async function showWins(wins: LineWin[]): Promise<void> {
+  async function showWins(wins: LineWin[], amount: number): Promise<void> {
     clearWins();
     if (wins.length === 0) return;
 
@@ -598,10 +598,9 @@ export function createBoard(
 
     coinFountain.burst(winCenters, BLOCK_W);
 
-    const totalMult = wins.reduce((sum, w) => sum + w.multiplier, 0);
     const bx = winCenters.reduce((s, c) => s + c.x, 0) / winCenters.length;
     const by = winCenters.reduce((s, c) => s + c.y, 0) / winCenters.length;
-    winBadge.show(bx, by, totalMult, CELL);
+    winBadge.show(bx, by, amount, CELL);
 
     // Sound: payline sweep + a win chime scaled to the best line.
     const best = Math.max(...wins.map((w) => w.multiplier));

@@ -4,11 +4,12 @@ import { gsap } from 'gsap';
 import type { GameAssets } from './assets';
 import type { WinTier } from './config';
 import { createBigWinSpine, loadBigWinAssets, type BigWinSpine } from './bigWinSpine';
+import { formatMoney } from './money';
 
 export interface WinFx {
   readonly view: Container;
   layout(width: number, height: number): void;
-  play(tier: WinTier, multiplier: number): Promise<void>;
+  play(tier: WinTier, amount: number): Promise<void>;
   skip(): void;
 }
 
@@ -125,20 +126,20 @@ export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
       v: target,
       duration,
       ease: 'power1.out',
-      onUpdate: () => (counter.text = `${Math.floor(count.v)}x`),
-      onComplete: () => (counter.text = `${target}x`),
+      onUpdate: () => (counter.text = formatMoney(count.v)),
+      onComplete: () => (counter.text = formatMoney(target)),
     });
   }
 
-  async function play(tier: WinTier, multiplier: number): Promise<void> {
+  async function play(tier: WinTier, amount: number): Promise<void> {
     reset();
     layout(screenW, screenH);
 
     view.visible = true;
     view.alpha = 1;
     dim.alpha = 0;
-    counter.text = '0x';
-    const target = Math.max(1, Math.round(multiplier));
+    counter.text = formatMoney(0);
+    const target = Math.max(0, amount);
 
     gsap.to(dim, { alpha: 0.62, duration: 0.25 });
 

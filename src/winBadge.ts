@@ -1,9 +1,10 @@
 import { Container, Text } from 'pixi.js';
 import { gsap } from 'gsap';
+import { formatMoney } from './money';
 
 export interface WinBadge {
   readonly view: Container;
-  show(cx: number, cy: number, multiplier: number, size: number): void;
+  show(cx: number, cy: number, amount: number, size: number): void;
   clear(): void;
 }
 
@@ -36,13 +37,13 @@ export function createWinBadge(): WinBadge {
     view.visible = false;
   }
 
-  function show(cx: number, cy: number, multiplier: number, size: number): void {
+  function show(cx: number, cy: number, amount: number, size: number): void {
     clear();
-    const target = Math.max(1, Math.round(multiplier));
+    const target = Math.max(0, amount);
 
     label.scale.set(1);
-    label.text = `×${target}`;
-    const s = (size * 0.85) / label.height;
+    label.text = formatMoney(target);
+    const s = (size * 0.8) / label.height;
 
     view.visible = true;
     view.alpha = 1;
@@ -50,7 +51,7 @@ export function createWinBadge(): WinBadge {
     view.scale.set(0);
 
     const count = { v: 0 };
-    label.text = '×0';
+    label.text = formatMoney(0);
 
     tl = gsap.timeline({ onComplete: () => (view.visible = false) });
     tl.to(view.scale, { x: s * 1.15, y: s * 1.15, duration: 0.22, ease: 'back.out(3)' });
@@ -59,10 +60,10 @@ export function createWinBadge(): WinBadge {
       count,
       {
         v: target,
-        duration: Math.min(0.9, 0.25 + target * 0.03),
+        duration: Math.min(1.1, 0.3 + target * 0.01),
         ease: 'power1.out',
-        onUpdate: () => (label.text = `×${Math.floor(count.v)}`),
-        onComplete: () => (label.text = `×${target}`),
+        onUpdate: () => (label.text = formatMoney(count.v)),
+        onComplete: () => (label.text = formatMoney(target)),
       },
       '<',
     );
