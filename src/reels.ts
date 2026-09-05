@@ -162,7 +162,19 @@ export function createBoard(
     return false;
   }
 
+  /** Coins already showing on the reels that stop before the last one. */
+  function coinsInFront(grid: string[][]): number {
+    let n = 0;
+    for (let reel = 0; reel < REELS - 1; reel++) {
+      for (let cell = 0; cell < ROWS; cell++) {
+        if (grid[reel]?.[cell] === COIN) n++;
+      }
+    }
+    return n;
+  }
+
   async function spin(grid: string[][], turbo: boolean): Promise<void> {
+    spinning = true;
     clearWins();
     clearWilds();
     clearCoins();
@@ -173,14 +185,19 @@ export function createBoard(
     // Give the reels a beat of free spin before revealing the outcome.
     if (!turbo) await wait(220);
     reelSet.setResult(toTargets(grid));
-    // Anticipation: slow the final reel dramatically when a big line is pending.
-    if (!turbo && teaseLastReel(grid)) {
+    // Anticipation: slow the final reel — for a pending big line, or when the
+    // settled reels already show 2+ coins and a bonus is within reach.
+    const coinTease = coinsInFront(grid) >= 2;
+    if (!turbo && (teaseLastReel(grid) || coinTease)) {
       reelSet.setAnticipation([REELS - 1], { slowdown: { from: 0.5, to: 0.12 } });
       playSfx('anticipation');
+      if (coinTease) startCoinAnticipation();
     }
     await p;
     stopSfx('wheels-spinning', SPIN_FADE_MS); // reels have landed — end the loop with a short fade
     stopSfx('anticipation');
+    stopCoinAnticipation();
+    spinning = false;
     highlightWilds(grid);
     highlightCoins(grid);
     if (countCoins(grid) > 0) playSfx('lightningBSymbolLanding');
@@ -208,6 +225,208 @@ export function createBoard(
   const tweens: gsap.core.Tween[] = [];
   let lineCycle: gsap.core.Tween | null = null;
 
+  // --- "juice": top fx layer, screen shake, flashes, sparkles ---
+  const fxTop = new Container();
+  fxTop.eventMode = 'none';
+  view.addChild(fxTop);
+
+  let baseX = 0;
+  let baseY = 0;
+  let screenH = 0;
+  let spinning = false;
+  let bonusActive = false;
+  const wildCellKeys = new Set<string>();
+  const fxSprites: Container[] = [];
+  const rnd = (a: number, b: number): number => a + Math.random() * (b - a);
+
+  function starPts(outer: number, inner: number, n = 4): number[] {
+    const p: number[] = [];
+    for (let k = 0; k < n * 2; k++) {
+      const r = k % 2 === 0 ? outer : inner;
+      const a = (Math.PI / n) * k - Math.PI / 2;
+      p.push(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    return p;
+  }
+  const twGfx = new Graphics();
+  twGfx.poly(starPts(50, 15)).fill(0xfff3c4);
+  twGfx.circle(0, 0, 12).fill(0xffffff);
+  const twinkleTex = renderer.generateTexture(twGfx);
+  twGfx.destroy();
+
+  function trackFx<T extends Container>(o: T): T {
+    fxSprites.push(o);
+    return o;
+  }
+  function clearFx(): void {
+    for (const o of fxSprites) {
+      gsap.killTweensOf(o);
+      gsap.killTweensOf(o.scale);
+      if (!o.destroyed) o.destroy();
+    }
+    fxSprites.length = 0;
+  }
+
+  function screenShake(amp: number, dur = 0.5): void {
+    const st = { p: 1 };
+    gsap.to(st, {
+      p: 0,
+      duration: dur,
+      ease: 'power2.out',
+      onUpdate: () => {
+        view.x = baseX + (Math.random() * 2 - 1) * amp * st.p;
+        view.y = baseY + (Math.random() * 2 - 1) * amp * st.p;
+      },
+      onComplete: () => {
+        view.x = baseX;
+        view.y = baseY;
+      },
+    });
+  }
+
+  function playFlash(alpha = 0.85): void {
+    const g = new Graphics();
+    const pad = CELL;
+    g.rect(-BLOCK_W / 2 - pad, -BLOCK_H / 2 - pad, BLOCK_W + pad * 2, BLOCK_H + pad * 2).fill(0xffffff);
+    g.blendMode = 'add';
+    g.alpha = 0;
+    fxTop.addChild(g);
+    gsap.to(g, {
+      alpha,
+      duration: 0.08,
+      yoyo: true,
+      repeat: 1,
+      ease: 'power2.out',
+      onComplete: () => g.destroy(),
+    });
+  }
+
+  function bigWinGlow(): void {
+    const w = frame.width;
+    const h = frame.height;
+    const g = new Graphics();
+    g.roundRect(-w / 2, -h / 2, w, h, Math.min(w, h) * 0.05).stroke({
+      width: w * 0.02,
+      color: 0xffe08a,
+    });
+    g.blendMode = 'add';
+    g.alpha = 0;
+    fxTop.addChild(trackFx(g));
+    gsap.to(g, { alpha: 0.9, duration: 0.28, yoyo: true, repeat: 3, ease: 'sine.inOut', onComplete: () => g.destroy() });
+  }
+
+  function celebrateBonus(): Promise<void> {
+    return new Promise((resolve) => {
+      playFlash(0.9);
+      screenShake(screenH * 0.022, 0.6);
+      const banner = new Text({
+        text: 'HOLD & WIN!',
+        style: {
+          fontFamily: 'Arial Black, Arial, sans-serif',
+          fontSize: CELL * 0.62,
+          fontWeight: '900',
+          fill: '#ffd83a',
+          stroke: { color: '#5a2d00', width: CELL * 0.05, join: 'round' },
+          dropShadow: { color: '#000000', alpha: 0.5, blur: 14, distance: 10, angle: Math.PI / 2 },
+        },
+      });
+      banner.anchor.set(0.5);
+      banner.scale.set(2.6);
+      banner.alpha = 0;
+      fxTop.addChild(banner);
+      const tl = gsap.timeline({
+        onComplete: () => {
+          banner.destroy();
+          resolve();
+        },
+      });
+      tl.to(banner, { alpha: 1, duration: 0.12 }, 0);
+      tl.to(banner.scale, { x: 1, y: 1, duration: 0.42, ease: 'back.out(2)' }, 0);
+      tl.to(banner.scale, { x: 1.06, y: 1.06, duration: 0.3, yoyo: true, repeat: 1, ease: 'sine.inOut' });
+      tl.to({}, { duration: 0.5 });
+      tl.to(banner, { alpha: 0, duration: 0.3 });
+    });
+  }
+
+  function playWildEmphasis(reel: number, cell: number): void {
+    const c = cellCenter(reel, cell);
+    for (let i = 0; i < 3; i++) {
+      const ring = new Graphics();
+      ring.circle(0, 0, CELL * 0.5).stroke({ width: CELL * 0.055, color: 0x9fe8ff });
+      ring.blendMode = 'add';
+      ring.position.set(c.x, c.y);
+      ring.scale.set(0.35);
+      ring.alpha = 0.95;
+      overlay.addChild(trackFx(ring));
+      const d = i * 0.14;
+      gsap.to(ring.scale, { x: 1.7, y: 1.7, duration: 0.6, delay: d, ease: 'power2.out' });
+      gsap.to(ring, { alpha: 0, duration: 0.6, delay: d, ease: 'power1.out', onComplete: () => ring.destroy() });
+    }
+    for (let i = 0; i < 6; i++) {
+      const s = new Sprite(twinkleTex);
+      s.anchor.set(0.5);
+      s.blendMode = 'add';
+      s.tint = 0xcdf3ff;
+      s.position.set(c.x + rnd(-0.4, 0.4) * CELL, c.y + rnd(-0.4, 0.4) * CELL);
+      const size = (CELL * rnd(0.14, 0.26)) / twinkleTex.width;
+      s.scale.set(0);
+      overlay.addChild(trackFx(s));
+      const tl = gsap.timeline({ delay: rnd(0, 0.35), onComplete: () => s.destroy() });
+      tl.to(s.scale, { x: size, y: size, duration: 0.18, ease: 'back.out(3)' });
+      tl.to(s.scale, { x: 0, y: 0, duration: 0.3, ease: 'power1.in' });
+    }
+  }
+
+  let anticipationFx: Graphics | null = null;
+  function startCoinAnticipation(): void {
+    const w = frame.width;
+    const h = frame.height;
+    const g = new Graphics();
+    g.roundRect(-w / 2, -h / 2, w, h, Math.min(w, h) * 0.05).stroke({ width: w * 0.03, color: 0xffcf4a });
+    g.blendMode = 'add';
+    g.alpha = 0;
+    fxTop.addChild(g);
+    anticipationFx = g;
+    gsap.to(g, { alpha: 0.85, duration: 0.4, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+  }
+  function stopCoinAnticipation(): void {
+    if (anticipationFx) {
+      gsap.killTweensOf(anticipationFx);
+      anticipationFx.destroy();
+      anticipationFx = null;
+    }
+  }
+
+  function spawnTwinkle(): void {
+    const c = cellCenter((Math.random() * REELS) | 0, (Math.random() * ROWS) | 0);
+    const s = new Sprite(twinkleTex);
+    s.anchor.set(0.5);
+    s.blendMode = 'add';
+    s.position.set(c.x + rnd(-0.25, 0.25) * CELL, c.y + rnd(-0.25, 0.25) * CELL);
+    const size = (CELL * rnd(0.12, 0.22)) / twinkleTex.width;
+    s.scale.set(0);
+    s.rotation = rnd(0, Math.PI);
+    overlay.addChild(s);
+    const tl = gsap.timeline({ onComplete: () => s.destroy() });
+    tl.to(s.scale, { x: size, y: size, duration: 0.35, ease: 'sine.out' });
+    tl.to(s.scale, { x: 0, y: 0, duration: 0.5, ease: 'sine.in' });
+  }
+
+  let twinkleAcc = 0;
+  let twinkleNext = 1.6;
+  ticker.add((tk) => {
+    if (spinning || bonusActive || winFrames.length > 0) {
+      twinkleAcc = 0;
+      return;
+    }
+    twinkleAcc += tk.deltaMS / 1000;
+    if (twinkleAcc >= twinkleNext) {
+      twinkleAcc = 0;
+      twinkleNext = rnd(1.4, 3.2);
+      spawnTwinkle();
+    }
+  });
+
   function cellRect(reel: number, cell: number): { x: number; y: number; w: number; h: number } {
     const b = reelSet.getCellBounds(reel, cell);
     return { x: b.x, y: b.y, w: b.width, h: b.height };
@@ -223,6 +442,7 @@ export function createBoard(
     for (let reel = 0; reel < grid.length; reel++) {
       for (let cell = 0; cell < grid[reel]!.length; cell++) {
         if (grid[reel]![cell] !== WILD) continue;
+        wildCellKeys.add(`${reel}:${cell}`);
         const c = cellCenter(reel, cell);
         const anim = new AnimatedSprite(bonusFrameTextures);
         anim.anchor.set(0.5);
@@ -245,6 +465,7 @@ export function createBoard(
   function clearWilds(): void {
     for (const a of wildFrames) a.destroy();
     wildFrames.length = 0;
+    wildCellKeys.clear();
   }
 
   function highlightCoins(grid: string[][]): void {
@@ -343,6 +564,7 @@ export function createBoard(
         overlay.addChild(anim);
         winFrames.push(anim);
         playBurst(reel, cell); // star-burst + coin shower on the winning symbol
+        if (wildCellKeys.has(key)) playWildEmphasis(reel, cell); // energy rings on a winning Wild
       }
     }
 
@@ -355,6 +577,10 @@ export function createBoard(
 
     // Sound: payline sweep + a win chime scaled to the best line.
     const best = Math.max(...wins.map((w) => w.multiplier));
+    if (best >= 10) {
+      screenShake(screenH * 0.016, 0.5); // punch on a big-tier line win
+      bigWinGlow();
+    }
     playSfx('betline');
     playSfx(best >= 25 ? 'winLarge' : best >= 10 ? 'winMedium' : best >= 5 ? 'winSmall' : 'winTiny');
 
@@ -393,6 +619,7 @@ export function createBoard(
     for (const a of winFrames) a.destroy();
     winFrames.length = 0;
     clearBursts();
+    clearFx();
     coinFountain.clear();
     winBadge.clear();
     line.clear();
@@ -466,9 +693,13 @@ export function createBoard(
   }
 
   async function runBonus(bonus: BonusResult): Promise<void> {
+    bonusActive = true;
     clearWins();
     clearWilds();
     clearCoins();
+
+    playSfx('bonusEnter');
+    await celebrateBonus(); // "HOLD & WIN!" banner + flash + shake before the board
 
     const layer = new Container();
     view.addChild(layer);
@@ -551,6 +782,7 @@ export function createBoard(
     playSfx('stickyEnds');
     await waitFrames(900);
     layer.destroy({ children: true });
+    bonusActive = false;
   }
 
   function layout(width: number, height: number, top: number, bottom: number): void {
@@ -569,6 +801,9 @@ export function createBoard(
     view.scale.set(scale);
     view.x = width / 2;
     view.y = top + availH / 2;
+    baseX = view.x;
+    baseY = view.y;
+    screenH = height;
   }
 
   return { view, spin, skip, showWins, clearWins, layout, runBonus };
