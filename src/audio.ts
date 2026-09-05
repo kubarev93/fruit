@@ -3,41 +3,73 @@ import type { BootedHud } from '@open-slot-ui/pixi';
 const BASE = 'assets';
 const DEFAULT_VOLUME = 0.5;
 const DUCK_FACTOR = 0.18; // how far to lower the music under a win jingle
+const FADE_MS = 500;
 
-// Shared singleton so the game can duck the music under big-win jingles.
 let duckImpl: (ducked: boolean) => void = () => undefined;
 /** Temporarily lower the background music (e.g. while a big-win jingle plays). */
 export function duckMusic(ducked: boolean): void {
   duckImpl(ducked);
 }
 
+let bonusImpl: (on: boolean) => void = () => undefined;
+/** Swap the main-game loop for the bonus loop while the Hold & Win runs. */
+export function setBonusMusic(on: boolean): void {
+  bonusImpl(on);
+}
+
+/** Linear volume fade; resolves/acts via the `done` callback when finished. */
+function fade(el: HTMLAudioElement, to: number, done?: () => void): number {
+  const from = el.volume;
+  const start = performance.now();
+  const id = window.setInterval(() => {
+    const t = Math.min(1, (performance.now() - start) / FADE_MS);
+    el.volume = Math.max(0, Math.min(1, from + (to - from) * t));
+    if (t >= 1) {
+      window.clearInterval(id);
+      done?.();
+    }
+  }, 33);
+  return id;
+}
+
 /**
- * Background music (`main.mp3`), wired to the HUD's sound controls.
- *
- * Browsers block audio until a user gesture, so playback starts on the first
- * pointer/keypress. The HUD's master mute (`ui.muted`) and the Music volume
- * slider (`valueChanged` id `music`) drive mute state and volume.
+ * Background music wired to the HUD's sound controls: the main-game loop
+ * (`main.mp3`) and a bonus loop (`bonus.mp3`) that takes over during the
+ * Hold & Win. If the bonus track can't play, the main loop keeps going.
  */
 export function initAudio(hud: BootedHud): void {
-  const music = new Audio(`${BASE}/main.mp3`);
-  music.loop = true;
-  music.preload = 'auto';
+  const main = new Audio(`${BASE}/main.mp3`);
+  main.loop = true;
+  main.preload = 'auto';
+  const bonus = new Audio(`${BASE}/bonus.mp3`);
+  bonus.loop = true;
+  bonus.preload = 'auto';
 
   const ui = hud.ui;
   let unlocked = false;
   let baseVolume = DEFAULT_VOLUME;
   let ducked = false;
+  let inBonus = false;
+  let fadeId = 0;
+
+  const target = (): number => baseVolume * (ducked ? DUCK_FACTOR : 1);
+  const active = (): HTMLAudioElement => (inBonus ? bonus : main);
+  const idle = (): HTMLAudioElement => (inBonus ? main : bonus);
+
   const applyVolume = (): void => {
-    music.volume = baseVolume * (ducked ? DUCK_FACTOR : 1);
+    active().volume = target();
+    idle().volume = 0;
   };
-  applyVolume();
 
   const apply = (): void => {
-    music.muted = ui.muted.get();
-    if (unlocked && !music.muted) void music.play().catch(() => undefined);
+    const muted = ui.muted.get();
+    main.muted = muted;
+    bonus.muted = muted;
+    if (unlocked && !muted) void active().play().catch(() => undefined);
   };
 
-  // Autoplay policy: kick playback off the first user gesture, then detach.
+  applyVolume();
+
   const unlock = (): void => {
     if (unlocked) return;
     unlocked = true;
@@ -48,10 +80,8 @@ export function initAudio(hud: BootedHud): void {
   window.addEventListener('pointerdown', unlock);
   window.addEventListener('keydown', unlock);
 
-  // Master mute toggle.
   ui.muted.subscribe(() => apply());
 
-  // Music volume slider (0..1).
   hud.on('valueChanged', ({ id, value }) => {
     if (id !== 'music') return;
     baseVolume = Math.max(0, Math.min(1, value));
@@ -61,6 +91,45 @@ export function initAudio(hud: BootedHud): void {
 
   duckImpl = (d: boolean): void => {
     ducked = d;
-    applyVolume();
+    window.clearInterval(fadeId);
+    fadeId = fade(active(), target());
+  };
+
+  bonusImpl = (on: boolean): void => {
+    if (on === inBonus) return;
+    const prev = active();
+    inBonus = on;
+    const next = active();
+    window.clearInterval(fadeId);
+
+    const startNext = (): void => {
+      next.volume = 0;
+      if (unlocked && !ui.muted.get()) {
+        if (on) next.currentTime = 0;
+        void next.play().catch(() => undefined);
+      }
+      fade(next, target());
+    };
+
+    // Fade the old track out and pause it; bring the new one in. If the bonus
+    // track fails to start, fall back to the main loop so it never goes silent.
+    fade(prev, 0, () => {
+      if (on) {
+        next
+          .play()
+          .then(() => {
+            prev.pause();
+            startNext();
+          })
+          .catch(() => {
+            inBonus = false;
+            fade(main, target());
+            if (unlocked && !ui.muted.get()) void main.play().catch(() => undefined);
+          });
+      } else {
+        prev.pause();
+        startNext();
+      }
+    });
   };
 }

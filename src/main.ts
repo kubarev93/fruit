@@ -7,7 +7,7 @@ import { gsap } from 'gsap';
 import { loadGameAssets } from './assets';
 import { createBoard } from './reels';
 import { createWinFx } from './winfx';
-import { initAudio, duckMusic } from './audio';
+import { initAudio, duckMusic, setBonusMusic } from './audio';
 import { initSfx, playSfx, stopSfx } from './sfx';
 import { createFlares } from './flares';
 import { createRgs } from './rgs';
@@ -115,8 +115,10 @@ async function main(): Promise<void> {
     }
 
     if (round.bonus) {
+      setBonusMusic(true); // swap to the bonus loop for the whole Hold & Win
       await board.runBonus(round.bonus);
       await bigWinSplash(round.bonus.win, bet);
+      setBonusMusic(false);
     }
 
     ui.balance.set(round.balance);
