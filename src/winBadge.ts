@@ -51,7 +51,7 @@ export function createWinBadge(): WinBadge {
     view.scale.set(0);
 
     const count = { v: 0 };
-    label.text = formatMoney(0);
+    label.text = formatMoney(0, 0);
 
     tl = gsap.timeline({ onComplete: () => (view.visible = false) });
     tl.to(view.scale, { x: s * 1.15, y: s * 1.15, duration: 0.22, ease: 'back.out(3)' });
@@ -62,7 +62,7 @@ export function createWinBadge(): WinBadge {
         v: target,
         duration: Math.min(1.1, 0.3 + target * 0.01),
         ease: 'power1.out',
-        onUpdate: () => (label.text = formatMoney(count.v)),
+        onUpdate: () => (label.text = formatMoney(Math.floor(count.v), 0)),
         onComplete: () => (label.text = formatMoney(target)),
       },
       '<',

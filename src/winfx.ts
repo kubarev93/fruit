@@ -126,7 +126,7 @@ export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
       v: target,
       duration,
       ease: 'power1.out',
-      onUpdate: () => (counter.text = formatMoney(count.v)),
+      onUpdate: () => (counter.text = formatMoney(Math.floor(count.v), 0)),
       onComplete: () => (counter.text = formatMoney(target)),
     });
   }
@@ -138,7 +138,7 @@ export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
     view.visible = true;
     view.alpha = 1;
     dim.alpha = 0;
-    counter.text = formatMoney(0);
+    counter.text = formatMoney(0, 0);
     const target = Math.max(0, amount);
 
     gsap.to(dim, { alpha: 0.62, duration: 0.25 });
