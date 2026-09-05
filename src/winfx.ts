@@ -114,6 +114,8 @@ export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
     tl = null;
     countTween?.kill();
     countTween = null;
+    gsap.killTweensOf(counter);
+    counter.alpha = 1;
     spine?.skip();
     view.visible = false;
     view.alpha = 1;
@@ -148,7 +150,10 @@ export function createWinFx(assets: GameAssets, ticker?: Ticker): WinFx {
       textWrap.visible = false;
       const escalateMs = 1000 + TIER_INDEX[tier] * 1320 + HOLD_MS * 0.6;
       runCount(target, escalateMs / 1000);
-      await spine.play(tier, HOLD_MS);
+      // Fade the amount out with the holder frame when the spine starts hiding.
+      await spine.play(tier, HOLD_MS, () => {
+        gsap.to(counter, { alpha: 0, duration: 0.55, ease: 'power1.in' });
+      });
       await new Promise<void>((resolve) => {
         tl = gsap.timeline({ onComplete: resolve });
         tl.to(view, { alpha: 0, duration: 0.3, onComplete: () => (view.visible = false) });

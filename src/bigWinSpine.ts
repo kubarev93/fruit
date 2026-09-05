@@ -35,7 +35,7 @@ export function loadBigWinAssets(): Promise<void> {
 
 export interface BigWinSpine {
   readonly view: Container;
-  play(tier: WinTier, holdMs: number): Promise<void>;
+  play(tier: WinTier, holdMs: number, onHide?: () => void): Promise<void>;
   skip(): void;
   destroy(): void;
 }
@@ -63,7 +63,7 @@ export function createBigWinSpine(ticker?: Ticker): BigWinSpine {
     r?.();
   }
 
-  function play(tier: WinTier, holdMs: number): Promise<void> {
+  function play(tier: WinTier, holdMs: number, onHide?: () => void): Promise<void> {
     const targetIdx = Math.max(0, TIERS.indexOf(tier));
     const st = spine.state;
 
@@ -86,7 +86,7 @@ export function createBigWinSpine(ticker?: Ticker): BigWinSpine {
 
     return new Promise<void>((resolve) => {
       resolvePlay = resolve;
-      hide.listener = { complete: () => finish() };
+      hide.listener = { start: () => onHide?.(), complete: () => finish() };
     });
   }
 
